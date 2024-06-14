@@ -1,5 +1,20 @@
 local M = {}
 
+---@enum FILE_STATE
+local FILE_STATE = {
+  modified = 0,
+  staged = 1,
+  new = 2
+}
+
+---@class File
+---@field name string
+---@field state FILE_STATE
+local File = {}
+
+---@param str string
+---@param delim string
+---@return string[]
 local function split(str, delim)
   local lines = {}
   for line in string.gmatch(str, '[^' .. delim .. ']+') do
@@ -8,6 +23,8 @@ local function split(str, delim)
   return lines
 end
 
+---@param cmd string
+---@return string
 local function execute_cmd(cmd)
   local handle = io.popen(cmd)
   assert(handle, 'cannot execute command "' .. cmd .. '"')
@@ -18,12 +35,58 @@ local function execute_cmd(cmd)
   return output
 end
 
+---@param lines string[]
+---@return File[]
+local function out_lines_to_files(lines)
+  local files = {}
+  for _, line in pairs(lines) do
+    local state_str = line:sub(1, 2)
+    local is_valid_state = state_str == 'M ' or state_str == ' M'
+        or state_str == '??'
+    assert(is_valid_state, 'git file has invalid state')
+
+    local state = state_str == 'M ' and FILE_STATE.staged
+        or state_str == ' M' and FILE_STATE.modified
+        or FILE_STATE.new
+    local file = {
+      name = line:sub(4),
+      state = state
+    }
+    table.insert(files, file)
+  end
+  return files
+end
+
+---@param file_state FILE_STATE
+---@return string
+local function prefix(file_state)
+    return file_state == FILE_STATE.staged and 'S '
+        or file_state == FILE_STATE.modified and 'M '
+        or '??'
+end
+
+---@param file_state FILE_STATE
+---@return string
+local function highlight_group(file_state)
+    return file_state == FILE_STATE.staged and 'Added'
+        or file_state == FILE_STATE.modified and 'Removed'
+        or 'Removed'
+end
+
 function M.open_status_win()
   local git_status = execute_cmd('git status -s')
   local lines = split(git_status, '\n')
+  local files = out_lines_to_files(lines)
 
   local buf = vim.api.nvim_create_buf(false, true)
-  vim.api.nvim_buf_set_lines(buf, 0, -1, true, lines)
+  for i, file in pairs(files) do
+    local line_nr = i - 1
+    local line = prefix(file.state) .. ' ' .. file.name
+    local hl_group = highlight_group(file.state)
+    vim.api.nvim_buf_set_lines(buf, line_nr, line_nr, true, {line})
+    vim.api.nvim_buf_add_highlight(buf, -1, hl_group, line_nr, 0, 2)
+  end
+
   vim.api.nvim_set_option_value('modifiable', false, { buf = buf })
 
   vim.api.nvim_open_win(buf, true, {

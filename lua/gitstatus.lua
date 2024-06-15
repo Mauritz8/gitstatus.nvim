@@ -101,6 +101,8 @@ local function open_status_win(files)
   end
 
   vim.api.nvim_set_option_value('modifiable', false, { buf = buf })
+  vim.api.nvim_buf_set_keymap(buf, 'n', '<CR>',
+      '<CMD>lua require("gitstatus").open_file_current_line()<CR>', {})
 
   local win = vim.api.nvim_open_win(buf, true, {
     split = 'left',
@@ -117,6 +119,17 @@ function M.toggle_status_win()
   else
     vim.api.nvim_set_current_win(State.win)
   end
+end
+
+function M.open_file_current_line()
+  if State == nil or not vim.api.nvim_win_is_valid(State.win) then
+    return
+  end
+
+  local pos = vim.api.nvim_win_get_cursor(State.win)
+  local row = pos[1]
+  local file = State.files[row]
+  vim.cmd('e ' .. file.name)
 end
 
 return M

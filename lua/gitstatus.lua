@@ -3,6 +3,7 @@ local M = {}
 ---@class StatusWin
 ---@field win string
 ---@field buf string
+---@field prev_win string
 ---@field files File[]
 StatusWin = {}
 
@@ -112,10 +113,11 @@ local function open_status_win(files)
 end
 
 function M.toggle_status_win()
+  local current_win = vim.api.nvim_get_current_win()
   if State == nil or not vim.api.nvim_win_is_valid(State.win) then
     local files = retrive_files()
     local win, buf = open_status_win(files)
-    State = { win = win, buf = buf, files = files }
+    State = { win = win, buf = buf, prev_win = current_win, files = files }
   else
     vim.api.nvim_set_current_win(State.win)
   end
@@ -129,6 +131,7 @@ function M.open_file_current_line()
   local pos = vim.api.nvim_win_get_cursor(State.win)
   local row = pos[1]
   local file = State.files[row]
+  vim.api.nvim_set_current_win(State.prev_win)
   vim.cmd('e ' .. file.name)
 end
 

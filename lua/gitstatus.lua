@@ -17,7 +17,7 @@ local File = {}
 ---@return string[]
 local function split(str, delim)
   local lines = {}
-  for line in string.gmatch(str, '[^' .. delim .. ']+') do
+  for line in str:gmatch('[^' .. delim .. ']+') do
     table.insert(lines, line)
   end
   return lines

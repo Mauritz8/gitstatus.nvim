@@ -1,7 +1,13 @@
 local M = {}
 
+---@class StatusWin
+---@field win string
+---@field buf string
+---@field files File[]
+StatusWin = {}
+
 ---@enum FILE_STATE
-local FILE_STATE = {
+FILE_STATE = {
   modified = 0,
   staged = 1,
   new = 2
@@ -10,7 +16,11 @@ local FILE_STATE = {
 ---@class File
 ---@field name string
 ---@field state FILE_STATE
-local File = {}
+File = {}
+
+
+---@type StatusWin?
+State = nil
 
 ---@param str string
 ---@param delim string
@@ -89,10 +99,20 @@ function M.open_status_win()
 
   vim.api.nvim_set_option_value('modifiable', false, { buf = buf })
 
-  vim.api.nvim_open_win(buf, true, {
+  local win = vim.api.nvim_open_win(buf, true, {
     split = 'left',
     width = 50,
   })
+
+  State = { win = win, buf = buf, files = files }
+end
+
+function M.toggle_status_win()
+  if State == nil or not vim.api.nvim_win_is_valid(State.win) then
+    M.open_status_win()
+  else
+    vim.api.nvim_set_current_win(State.win)
+  end
 end
 
 return M

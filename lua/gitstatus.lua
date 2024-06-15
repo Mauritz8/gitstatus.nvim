@@ -67,6 +67,13 @@ local function out_lines_to_files(lines)
   return files
 end
 
+---@return File[]
+local function retrive_files()
+  local git_status = execute_cmd('git status -s')
+  local lines = split(git_status, '\n')
+  return out_lines_to_files(lines)
+end
+
 ---@param file_state FILE_STATE
 ---@return string
 local function prefix(file_state)
@@ -83,11 +90,7 @@ local function highlight_group(file_state)
       or 'Removed'
 end
 
-function M.open_status_win()
-  local git_status = execute_cmd('git status -s')
-  local lines = split(git_status, '\n')
-  local files = out_lines_to_files(lines)
-
+local function open_status_win(files)
   local buf = vim.api.nvim_create_buf(false, true)
   for i, file in pairs(files) do
     local line_nr = i - 1
@@ -103,13 +106,14 @@ function M.open_status_win()
     split = 'left',
     width = 50,
   })
-
-  State = { win = win, buf = buf, files = files }
+  return win, buf
 end
 
 function M.toggle_status_win()
   if State == nil or not vim.api.nvim_win_is_valid(State.win) then
-    M.open_status_win()
+    local files = retrive_files()
+    local win, buf = open_status_win(files)
+    State = { win = win, buf = buf, files = files }
   else
     vim.api.nvim_set_current_win(State.win)
   end

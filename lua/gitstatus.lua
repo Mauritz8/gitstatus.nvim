@@ -5,10 +5,10 @@ local M = {}
 ---@field buf string
 ---@field prev_win string
 ---@field files File[]
-StatusWin = {}
+local StatusWin = {}
 
 ---@enum FILE_STATE
-FILE_STATE = {
+local FILE_STATE = {
   modified = 0,
   staged = 1,
   new = 2
@@ -17,11 +17,11 @@ FILE_STATE = {
 ---@class File
 ---@field name string
 ---@field state FILE_STATE
-File = {}
+local File = {}
 
 
 ---@type StatusWin?
-State = nil
+local status_win = nil
 
 ---@param str string
 ---@param delim string
@@ -114,24 +114,24 @@ end
 
 function M.toggle_status_win()
   local current_win = vim.api.nvim_get_current_win()
-  if State == nil or not vim.api.nvim_win_is_valid(State.win) then
+  if status_win == nil or not vim.api.nvim_win_is_valid(status_win.win) then
     local files = retrive_files()
     local win, buf = open_status_win(files)
-    State = { win = win, buf = buf, prev_win = current_win, files = files }
+    status_win = { win = win, buf = buf, prev_win = current_win, files = files }
   else
-    vim.api.nvim_set_current_win(State.win)
+    vim.api.nvim_set_current_win(status_win.win)
   end
 end
 
 function M.open_file_current_line()
-  if State == nil or not vim.api.nvim_win_is_valid(State.win) then
+  if status_win == nil or not vim.api.nvim_win_is_valid(status_win.win) then
     return
   end
 
-  local pos = vim.api.nvim_win_get_cursor(State.win)
+  local pos = vim.api.nvim_win_get_cursor(status_win.win)
   local row = pos[1]
-  local file = State.files[row]
-  vim.api.nvim_set_current_win(State.prev_win)
+  local file = status_win.files[row]
+  vim.api.nvim_set_current_win(status_win.prev_win)
   vim.cmd('e ' .. file.name)
 end
 

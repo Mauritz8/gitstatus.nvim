@@ -60,17 +60,17 @@ end
 ---@param file_state FILE_STATE
 ---@return string
 local function prefix(file_state)
-    return file_state == FILE_STATE.staged and 'S '
-        or file_state == FILE_STATE.modified and 'M '
-        or '??'
+  return file_state == FILE_STATE.staged and 'S '
+      or file_state == FILE_STATE.modified and 'M '
+      or '??'
 end
 
 ---@param file_state FILE_STATE
 ---@return string
 local function highlight_group(file_state)
-    return file_state == FILE_STATE.staged and 'Added'
-        or file_state == FILE_STATE.modified and 'Removed'
-        or 'Removed'
+  return file_state == FILE_STATE.staged and 'Added'
+      or file_state == FILE_STATE.modified and 'Removed'
+      or 'Removed'
 end
 
 function M.open_status_win()

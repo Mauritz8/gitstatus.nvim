@@ -57,6 +57,9 @@ local function get_lines(files)
   local file_table = split_files_by_state(files)
   for name, files_of_type in pairs(file_table) do
     if #files_of_type > 0 then
+      if #lines > 0 then
+        table.insert(lines, { str = ""; highlight_group = nil })
+      end
       table.insert(lines, { str = name; highlight_group = nil })
     end
     for _, file in ipairs(files_of_type) do

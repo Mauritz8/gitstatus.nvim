@@ -136,7 +136,7 @@ end
 local function set_line(buf, i, file)
   local line_nr = i - 1
   local line = prefix(file.type) .. file.name
-  vim.api.nvim_buf_set_lines(buf, line_nr, line_nr, true, {line})
+  vim.api.nvim_buf_set_lines(buf, line_nr, line_nr + 1, true, {line})
 
   local ns_id = vim.api.nvim_create_namespace("")
   local hl_group = highlight_group(file.state)
@@ -152,7 +152,7 @@ function M.open_status_win()
   local files = retrieve_files()
   if #files == 0 then
     local content = "nothing to commit, working tree clean"
-    vim.api.nvim_buf_set_lines(buf, 0, 0, true, {content})
+    vim.api.nvim_buf_set_lines(buf, 0, 1, true, {content})
   else
     for i, file in pairs(files) do
       set_line(buf, i, file)

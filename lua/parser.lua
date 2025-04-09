@@ -75,7 +75,7 @@ end
 
 ---@param lines string[]
 ---@return File[]
-local function out_lines_to_files(lines)
+local function lines_to_files(lines)
   local files = {}
   for _, line in pairs(lines) do
     local line_files = line_to_files(line)
@@ -90,7 +90,7 @@ end
 function parser.retrieve_files()
   local git_status = execute_cmd('git status -s')
   local lines = split(git_status, '\n')
-  return out_lines_to_files(lines)
+  return lines_to_files(lines)
 end
 
 return parser

@@ -148,7 +148,11 @@ local function open_status_win(files)
     local line = prefix(file.state) .. ' ' .. file.name
     local hl_group = highlight_group(file.state)
     vim.api.nvim_buf_set_lines(buf, line_nr, line_nr, true, {line})
-    vim.api.nvim_buf_add_highlight(buf, -1, hl_group, line_nr, 0, 2)
+    local ns_id = vim.api.nvim_create_namespace("")
+    vim.api.nvim_buf_set_extmark(buf, ns_id, line_nr, 0, {
+      end_col = 28,
+      hl_group = hl_group,
+    })
   end
 
   vim.api.nvim_set_option_value('modifiable', false, { buf = buf })
@@ -156,8 +160,11 @@ local function open_status_win(files)
       '<CMD>lua require("gitstatus").open_file_current_line()<CR>', {})
 
   local win = vim.api.nvim_open_win(buf, true, {
-    split = 'left',
-    width = 50,
+    relative = 'win',
+    row = 10,
+    col = 60,
+    width = 65,
+    height = 15,
   })
   return win, buf
 end

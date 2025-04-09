@@ -19,22 +19,21 @@ local function highlight_group(file_state)
 end
 
 ---@param files File[]
----@return [File[], File[], File[]]
+---@return File[], File[], File[]
 local function split_files_by_state(files)
-  local file_table = {}
-  file_table["Staged:"] = {}
-  file_table["Not staged:"] = {}
-  file_table["Untracked:"] = {}
+  local staged = {}
+  local not_staged = {}
+  local untracked  = {}
   for _, file in ipairs(files) do
     if file.state == FILE_STATE.staged then
-      table.insert(file_table["Staged:"], file)
+      table.insert(staged, file)
     elseif file.state == FILE_STATE.not_staged then
-      table.insert(file_table["Not staged:"], file)
+      table.insert(not_staged, file)
     elseif file.state == FILE_STATE.untracked then
-      table.insert(file_table["Untracked:"], file)
+      table.insert(untracked, file)
     end
   end
-  return file_table
+  return staged, not_staged, untracked
 end
 
 
@@ -67,13 +66,17 @@ local function get_lines(files)
     return lines
   end
 
-  local file_table = split_files_by_state(files)
-  for name, files_of_type in pairs(file_table) do
+  local staged, not_staged, untracked = split_files_by_state(files)
+  local file_table = { staged, not_staged, untracked }
+  local name = function(i)
+    return i == 1 and "Staged:" or i == 2 and "Not staged:" and "Untracked:"
+  end
+  for i, files_of_type in ipairs(file_table) do
     if #files_of_type > 0 then
       if #lines > 0 then
         table.insert(lines, { str = ""; highlight_group = nil })
       end
-      table.insert(lines, { str = name; highlight_group = nil })
+      table.insert(lines, { str = name(i); highlight_group = nil })
     end
     for _, file in ipairs(files_of_type) do
       local line = {

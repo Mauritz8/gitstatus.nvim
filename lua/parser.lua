@@ -77,9 +77,9 @@ end
 ---@return File[]
 local function lines_to_files(lines)
   local files = {}
-  for _, line in pairs(lines) do
+  for _, line in ipairs(lines) do
     local line_files = line_to_files(line)
-    for _, file in pairs(line_files) do
+    for _, file in ipairs(line_files) do
       table.insert(files, file)
     end
   end

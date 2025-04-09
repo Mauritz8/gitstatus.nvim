@@ -25,7 +25,7 @@ local function split_files_by_state(files)
   file_table["Staged:"] = {}
   file_table["Not staged:"] = {}
   file_table["Untracked:"] = {}
-  for _, file in pairs(files) do
+  for _, file in ipairs(files) do
     if file.state == FILE_STATE.staged then
       table.insert(file_table["Staged:"], file)
     elseif file.state == FILE_STATE.not_staged then
@@ -59,7 +59,7 @@ local function get_lines(files)
     if #files_of_type > 0 then
       table.insert(lines, { str = name; highlight_group = nil })
     end
-    for _, file in pairs(files_of_type) do
+    for _, file in ipairs(files_of_type) do
       local line = {
         str = prefix(file.type) .. file.name,
         highlight_group = highlight_group(file.state),
@@ -75,7 +75,7 @@ local function set_content(buf)
   local ns_id = vim.api.nvim_create_namespace("")
   local files = parser.retrieve_files()
   local lines = get_lines(files)
-  for i, line in pairs(lines) do
+  for i, line in ipairs(lines) do
     local line_nr = i - 1
     vim.api.nvim_buf_set_lines(buf, line_nr, line_nr, true, {line.str})
     vim.api.nvim_buf_set_extmark(buf, ns_id, line_nr, 0, {

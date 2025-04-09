@@ -1,6 +1,6 @@
 require("file")
 
-local parser = {}
+local M = {}
 
 ---@param str string
 ---@param delim string
@@ -87,14 +87,14 @@ local function lines_to_files(lines)
 end
 
 ---@return File[]
-function parser.retrieve_files()
+function M.retrieve_files()
   local git_status = execute_cmd('git status -s')
   local lines = split(git_status, '\n')
   return lines_to_files(lines)
 end
 
 ---@return string?
-function parser.branch()
+function M.branch()
   local out = execute_cmd('git branch')
   local lines = split(out, '\n')
   for _, line in ipairs(lines) do
@@ -105,4 +105,4 @@ function parser.branch()
   return nil
 end
 
-return parser
+return M

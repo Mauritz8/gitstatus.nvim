@@ -1,4 +1,5 @@
 local parser = require("parser")
+local git_actions = require("git_actions")
 
 local M = {}
 
@@ -69,7 +70,7 @@ local function get_lines(files)
   local staged, not_staged, untracked = split_files_by_state(files)
   local file_table = { staged, not_staged, untracked }
   local name = function(i)
-    return i == 1 and "Staged:" or i == 2 and "Not staged:" and "Untracked:"
+    return i == 1 and "Staged:" or i == 2 and "Not staged:" or "Untracked:"
   end
   for i, files_of_type in ipairs(file_table) do
     if #files_of_type > 0 then
@@ -109,7 +110,9 @@ function M.open_status_win()
   local buf = vim.api.nvim_create_buf(false, true)
   set_content(buf)
   vim.api.nvim_set_option_value('modifiable', false, { buf = buf })
-  vim.api.nvim_buf_set_keymap(buf, 'n', 'q', '<CMD>:q<CR>', {})
+  vim.api.nvim_buf_set_keymap(buf, 'n', 'q', '<CMD>q<CR>', {})
+  vim.api.nvim_buf_set_keymap(buf, 'n', 's',
+      '<CMD>lua require("gitstatus").stage_file()<CR>', {})
 
   vim.api.nvim_open_win(buf, true, {
     relative = 'editor',
@@ -118,6 +121,43 @@ function M.open_status_win()
     width = 65,
     height = 15,
   })
+end
+
+--- TODO: make staging branch name line invalid
+---@param line string
+---@return string?
+local function file_on_line(line)
+  local invalid_lines = {
+    "",
+    "Staged:",
+    "Not staged:",
+    "Untracked:",
+  }
+  for _, invalid_line in ipairs(invalid_lines) do
+    if line == invalid_line then
+      return nil
+    end
+  end
+
+  local i = line:find(":")
+  if i == nil then
+    return line
+  end
+  local file_start = i + 2
+  if file_start >= line:len() then
+    return nil
+  end
+  return line:sub(file_start)
+end
+
+function M.stage_file()
+  local line = vim.api.nvim_get_current_line()
+  local file = file_on_line(line)
+  if file == nil then
+    vim.print("Unable to stage file: invalid line")
+  else
+    git_actions.stage_file(file)
+  end
 end
 
 return M

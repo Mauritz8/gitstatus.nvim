@@ -16,7 +16,7 @@ end
 ---@param file_state FILE_STATE
 ---@return string
 local function highlight_group(file_state)
-  return file_state == FILE_STATE.staged and 'Added' or 'Removed'
+  return file_state == FILE_STATE.staged and 'staged' or 'not_staged'
 end
 
 ---@param files File[]
@@ -52,7 +52,7 @@ local function get_lines(files)
   if branch then
     table.insert(lines, {
       str = "Branch: " .. branch,
-      highlight_group = nil
+      highlight_group = nil,
     })
   end
 
@@ -93,6 +93,10 @@ end
 ---@param buf integer
 local function set_content(buf)
   local ns_id = vim.api.nvim_create_namespace("")
+  vim.api.nvim_set_hl(ns_id, "staged", { fg = "#26A641" })
+  vim.api.nvim_set_hl(ns_id, "not_staged", { fg = "#D73A49" })
+  vim.api.nvim_set_hl_ns(ns_id)
+
   local files = parser.retrieve_files()
   local lines = get_lines(files)
   for i, line in ipairs(lines) do

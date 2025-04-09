@@ -46,14 +46,27 @@ Line = {}
 ---@param files File[]
 ---@return Line[]
 local function get_lines(files)
-  if #files == 0 then
-    return {{
-      str = "nothing to commit, working tree clean",
+  local lines = {}
+
+  local branch = parser.branch()
+  if branch then
+    table.insert(lines, {
+      str = "Branch: " .. branch,
       highlight_group = nil
-    }}
+    })
   end
 
-  local lines = {}
+  if #files == 0 then
+    if #lines > 0 then
+      table.insert(lines, { str = ""; highlight_group = nil })
+    end
+    table.insert(lines, {
+      str = "nothing to commit, working tree clean",
+      highlight_group = nil
+    })
+    return lines
+  end
+
   local file_table = split_files_by_state(files)
   for name, files_of_type in pairs(file_table) do
     if #files_of_type > 0 then

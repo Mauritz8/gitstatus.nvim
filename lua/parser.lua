@@ -93,4 +93,16 @@ function parser.retrieve_files()
   return lines_to_files(lines)
 end
 
+---@return string?
+function parser.branch()
+  local out = execute_cmd('git branch')
+  local lines = split(out, '\n')
+  for _, line in ipairs(lines) do
+    if line:find("*", 1, true) then
+      return line:sub(3)
+    end
+  end
+  return nil
+end
+
 return parser

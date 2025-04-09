@@ -158,6 +158,7 @@ local function open_status_win(files)
   vim.api.nvim_set_option_value('modifiable', false, { buf = buf })
   vim.api.nvim_buf_set_keymap(buf, 'n', '<CR>',
       '<CMD>lua require("gitstatus").open_file_current_line()<CR>', {})
+  vim.api.nvim_buf_set_keymap(buf, 'n', 'q', '<CMD>:q<CR>', {})
 
   local win = vim.api.nvim_open_win(buf, true, {
     relative = 'win',

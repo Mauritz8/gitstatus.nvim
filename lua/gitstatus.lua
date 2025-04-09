@@ -24,7 +24,7 @@ end
 
 ---@param file_state FILE_STATE
 ---@return string
-local function highlight_group(file_state)
+local function get_highlight_group(file_state)
   return file_state == FILE_STATE.staged and 'staged' or 'not_staged'
 end
 
@@ -87,12 +87,18 @@ local function get_lines(files)
     for _, file in ipairs(files_of_type) do
       local line = {
         str = prefix(file.type) .. file.name,
-        highlight_group = highlight_group(file.state),
+        highlight_group = get_highlight_group(file.state),
         file = file,
       }
       table.insert(lines, line)
     end
   end
+  table.insert(lines, { str = "", highlight_group = nil, file = nil, })
+  table.insert(lines, {
+    str = "s = stage/unstage, c = commit, q = quit, a = stage all",
+    highlight_group = nil,
+    file = nil,
+  })
   return lines
 end
 

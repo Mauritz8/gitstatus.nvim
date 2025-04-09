@@ -19,21 +19,22 @@ local function highlight_group(file_state)
 end
 
 ---@param files File[]
----@return File[], File[], File[]
+---@return [File[], File[], File[]]
 local function split_files_by_state(files)
-  local staged = {}
-  local non_staged = {}
-  local untracked = {}
+  local file_table = {}
+  file_table["Staged:"] = {}
+  file_table["Not staged:"] = {}
+  file_table["Untracked:"] = {}
   for _, file in pairs(files) do
     if file.state == FILE_STATE.staged then
-      table.insert(staged, file)
+      table.insert(file_table["Staged:"], file)
     elseif file.state == FILE_STATE.not_staged then
-      table.insert(non_staged, file)
+      table.insert(file_table["Not staged:"], file)
     elseif file.state == FILE_STATE.untracked then
-      table.insert(untracked, file)
+      table.insert(file_table["Untracked:"], file)
     end
   end
-  return staged, non_staged, untracked
+  return file_table
 end
 
 
@@ -43,6 +44,7 @@ end
 Line = {}
 
 ---@param files File[]
+---@return Line[]
 local function get_lines(files)
   if #files == 0 then
     return {{
@@ -52,53 +54,19 @@ local function get_lines(files)
   end
 
   local lines = {}
-  local staged, non_staged, untracked = split_files_by_state(files)
-
-  if #staged > 0 then
-    local line = {
-      str = "Staged:",
-      highlight_group = nil,
-    }
-    table.insert(lines, line)
+  local file_table = split_files_by_state(files)
+  for name, files_of_type in pairs(file_table) do
+    if #files_of_type > 0 then
+      table.insert(lines, { str = name; highlight_group = nil })
+    end
+    for _, file in pairs(files_of_type) do
+      local line = {
+        str = prefix(file.type) .. file.name,
+        highlight_group = highlight_group(file.state),
+      }
+      table.insert(lines, line)
+    end
   end
-  for _, file in pairs(staged) do
-    local line = {
-      str = prefix(file.type) .. file.name,
-      highlight_group = highlight_group(file.state),
-    }
-    table.insert(lines, line)
-  end
-
-  if #non_staged > 0 then
-    local line = {
-      str = "Not staged:",
-      highlight_group = nil,
-    }
-    table.insert(lines, line)
-  end
-  for _, file in pairs(non_staged) do
-    local line = {
-      str = prefix(file.type) .. file.name,
-      highlight_group = highlight_group(file.state),
-    }
-    table.insert(lines, line)
-  end
-
-  if #untracked > 0 then
-    local line = {
-      str = "Untracked:",
-      highlight_group = nil,
-    }
-    table.insert(lines, line)
-  end
-  for _, file in pairs(untracked) do
-    local line = {
-      str = prefix(file.type) .. file.name,
-      highlight_group = highlight_group(file.state),
-    }
-    table.insert(lines, line)
-  end
-
   return lines
 end
 

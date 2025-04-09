@@ -62,11 +62,11 @@ local function line_to_files(line)
     local name = line:sub(4)
 
     if line:sub(1, 2) == "??" then
-      return {
+      return {{
         name = name,
         state = FILE_STATE.untracked,
         type = FILE_EDIT_TYPE.none,
-      }
+      }}
     end
 
     local files = {}
@@ -108,7 +108,7 @@ local function out_lines_to_files(lines)
 end
 
 ---@return File[]
-local function retrive_files()
+local function retrieve_files()
   local git_status = execute_cmd('git status -s')
   local lines = split(git_status, '\n')
   return out_lines_to_files(lines)
@@ -132,10 +132,10 @@ end
 
 function M.open_status_win()
   local buf = vim.api.nvim_create_buf(false, true)
-  local files = retrive_files()
+  local files = retrieve_files()
   for i, file in pairs(files) do
     local line_nr = i - 1
-    local line = prefix(file.type) .. ' ' .. file.name
+    local line = prefix(file.type) .. file.name
     local hl_group = highlight_group(file.state)
     vim.api.nvim_buf_set_lines(buf, line_nr, line_nr, true, {line})
     local ns_id = vim.api.nvim_create_namespace("")

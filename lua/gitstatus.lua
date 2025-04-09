@@ -1,12 +1,5 @@
 local M = {}
 
----@class StatusWin
----@field win string
----@field buf string
----@field prev_win string
----@field files File[]
-local StatusWin = {}
-
 ---@enum FILE_STATE
 local FILE_STATE = {
   staged = 0,
@@ -29,9 +22,6 @@ local FILE_EDIT_TYPE = {
 ---@field type FILE_EDIT_TYPE
 local File = {}
 
-
----@type StatusWin?
-local status_win = nil
 
 ---@param str string
 ---@param delim string
@@ -140,8 +130,9 @@ local function highlight_group(file_state)
   return file_state == FILE_STATE.staged and 'Added' or 'Removed'
 end
 
-local function open_status_win(files)
+function M.open_status_win()
   local buf = vim.api.nvim_create_buf(false, true)
+  local files = retrive_files()
   for i, file in pairs(files) do
     local line_nr = i - 1
     local line = prefix(file.type) .. ' ' .. file.name
@@ -159,37 +150,13 @@ local function open_status_win(files)
       '<CMD>lua require("gitstatus").open_file_current_line()<CR>', {})
   vim.api.nvim_buf_set_keymap(buf, 'n', 'q', '<CMD>:q<CR>', {})
 
-  local win = vim.api.nvim_open_win(buf, true, {
-    relative = 'win',
+  vim.api.nvim_open_win(buf, true, {
+    relative = 'editor',
     row = 10,
     col = 60,
     width = 65,
     height = 15,
   })
-  return win, buf
-end
-
-function M.toggle_status_win()
-  local current_win = vim.api.nvim_get_current_win()
-  if status_win == nil or not vim.api.nvim_win_is_valid(status_win.win) then
-    local files = retrive_files()
-    local win, buf = open_status_win(files)
-    status_win = { win = win, buf = buf, prev_win = current_win, files = files }
-  else
-    vim.api.nvim_set_current_win(status_win.win)
-  end
-end
-
-function M.open_file_current_line()
-  if status_win == nil or not vim.api.nvim_win_is_valid(status_win.win) then
-    return
-  end
-
-  local pos = vim.api.nvim_win_get_cursor(status_win.win)
-  local row = pos[1]
-  local file = status_win.files[row]
-  vim.api.nvim_set_current_win(status_win.prev_win)
-  vim.cmd('e ' .. file.name)
 end
 
 return M

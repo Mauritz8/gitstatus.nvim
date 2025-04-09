@@ -9,14 +9,24 @@ local StatusWin = {}
 
 ---@enum FILE_STATE
 local FILE_STATE = {
+  staged = 0,
+  not_staged = 1,
+  untracked = 2
+}
+
+---@enum FILE_EDIT_TYPE
+local FILE_EDIT_TYPE = {
   modified = 0,
-  staged = 1,
-  new = 2
+  new = 1,
+  deleted = 2,
+  renamed = 3,
+  none = 4,
 }
 
 ---@class File
 ---@field name string
 ---@field state FILE_STATE
+---@field type FILE_EDIT_TYPE
 local File = {}
 
 
@@ -46,24 +56,64 @@ local function execute_cmd(cmd)
   return output
 end
 
+---@param str string
+---@return FILE_EDIT_TYPE
+local function str_to_file_type(str)
+  return str == 'M' and FILE_EDIT_TYPE.modified
+      or str == 'A' and FILE_EDIT_TYPE.new
+      or str == 'D' and FILE_EDIT_TYPE.deleted
+      or str == 'R' and FILE_EDIT_TYPE.renamed
+      or FILE_EDIT_TYPE.none
+end
+
+---@param line string
+---@return File[]
+local function line_to_files(line)
+    print(string.format("line: '%s'", line))
+    local name = line:sub(4)
+
+    if line:sub(1, 2) == "??" then
+      return {
+        name = name,
+        state = FILE_STATE.untracked,
+        type = FILE_EDIT_TYPE.none,
+      }
+    end
+
+    local files = {}
+
+    local staged_file_type = line:sub(1, 1)
+    if staged_file_type ~= "" then
+      local file = {
+        name = name,
+        state = FILE_STATE.staged,
+        type = str_to_file_type(staged_file_type),
+      }
+      table.insert(files, file)
+    end
+
+    local unstaged_file_type = line:sub(2, 2)
+    if unstaged_file_type ~= "" then
+      local file = {
+        name = name,
+        state = FILE_STATE.not_staged,
+        type = str_to_file_type(staged_file_type),
+      }
+      table.insert(files, file)
+    end
+
+    return files
+end
+
 ---@param lines string[]
 ---@return File[]
 local function out_lines_to_files(lines)
   local files = {}
   for _, line in pairs(lines) do
-    local state_str = line:sub(1, 2)
-    local is_valid_state = state_str == 'M ' or state_str == ' M'
-        or state_str == '??'
-    assert(is_valid_state, 'git file has invalid state')
-
-    local state = state_str == 'M ' and FILE_STATE.staged
-        or state_str == ' M' and FILE_STATE.modified
-        or FILE_STATE.new
-    local file = {
-      name = line:sub(4),
-      state = state
-    }
-    table.insert(files, file)
+    local line_files = line_to_files(line)
+    for _, file in pairs(line_files) do
+      table.insert(files, file)
+    end
   end
   return files
 end
@@ -75,20 +125,20 @@ local function retrive_files()
   return out_lines_to_files(lines)
 end
 
----@param file_state FILE_STATE
+---@param file_edit_type FILE_EDIT_TYPE
 ---@return string
-local function prefix(file_state)
-  return file_state == FILE_STATE.staged and 'S '
-      or file_state == FILE_STATE.modified and 'M '
-      or '??'
+local function prefix(file_edit_type)
+  return file_edit_type == FILE_EDIT_TYPE.modified and 'modified: '
+      or file_edit_type == FILE_EDIT_TYPE.new and 'new file: '
+      or file_edit_type == FILE_EDIT_TYPE.deleted and 'deleted: '
+      or file_edit_type == FILE_EDIT_TYPE.renamed and 'renamed: '
+      or ''
 end
 
 ---@param file_state FILE_STATE
 ---@return string
 local function highlight_group(file_state)
-  return file_state == FILE_STATE.staged and 'Added'
-      or file_state == FILE_STATE.modified and 'Removed'
-      or 'Removed'
+  return file_state == FILE_STATE.staged and 'Added' or 'Removed'
 end
 
 local function open_status_win(files)

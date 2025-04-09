@@ -161,6 +161,10 @@ function M.stage_file()
     vim.print("Unable to stage file: invalid line")
   else
     git_actions.stage_file(file)
+    local buf = vim.api.nvim_get_current_buf()
+    vim.api.nvim_set_option_value('modifiable', true, { buf = buf })
+    vim.api.nvim_buf_set_lines(buf, 0, -1, true, {})
+    set_content(buf)
   end
 end
 

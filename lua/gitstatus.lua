@@ -69,7 +69,6 @@ end
 ---@param line string
 ---@return File[]
 local function line_to_files(line)
-    print(string.format("line: '%s'", line))
     local name = line:sub(4)
 
     if line:sub(1, 2) == "??" then
@@ -83,7 +82,7 @@ local function line_to_files(line)
     local files = {}
 
     local staged_file_type = line:sub(1, 1)
-    if staged_file_type ~= "" then
+    if staged_file_type ~= " " then
       local file = {
         name = name,
         state = FILE_STATE.staged,
@@ -93,11 +92,11 @@ local function line_to_files(line)
     end
 
     local unstaged_file_type = line:sub(2, 2)
-    if unstaged_file_type ~= "" then
+    if unstaged_file_type ~= " " then
       local file = {
         name = name,
         state = FILE_STATE.not_staged,
-        type = str_to_file_type(staged_file_type),
+        type = str_to_file_type(unstaged_file_type),
       }
       table.insert(files, file)
     end
@@ -145,12 +144,12 @@ local function open_status_win(files)
   local buf = vim.api.nvim_create_buf(false, true)
   for i, file in pairs(files) do
     local line_nr = i - 1
-    local line = prefix(file.state) .. ' ' .. file.name
+    local line = prefix(file.type) .. ' ' .. file.name
     local hl_group = highlight_group(file.state)
     vim.api.nvim_buf_set_lines(buf, line_nr, line_nr, true, {line})
     local ns_id = vim.api.nvim_create_namespace("")
     vim.api.nvim_buf_set_extmark(buf, ns_id, line_nr, 0, {
-      end_col = 28,
+      end_col = string.len(line),
       hl_group = hl_group,
     })
   end

@@ -103,32 +103,46 @@ local function get_lines(files)
 end
 
 ---@param buf integer
-local function set_content(buf)
-  local ns_id = vim.api.nvim_create_namespace("")
-  vim.api.nvim_set_hl(ns_id, "staged", { fg = "#26A641" })
-  vim.api.nvim_set_hl(ns_id, "not_staged", { fg = "#D73A49" })
-  vim.api.nvim_set_hl_ns(ns_id)
+---@param namespace integer
+local function refresh_buffer(buf, namespace)
+  vim.api.nvim_set_option_value('modifiable', true, { buf = buf })
+  vim.api.nvim_buf_set_lines(buf, 0, -1, true, {})
 
   local files = parser.retrieve_files()
   buf_lines = get_lines(files)
   for i, line in ipairs(buf_lines) do
     local line_nr = i - 1
     vim.api.nvim_buf_set_lines(buf, line_nr, line_nr, true, {line.str})
-    vim.api.nvim_buf_set_extmark(buf, ns_id, line_nr, 0, {
+    vim.api.nvim_buf_set_extmark(buf, namespace, line_nr, 0, {
       end_col = line.str:len(),
       hl_group = line.highlight_group,
     })
   end
   vim.api.nvim_buf_set_lines(buf, -2, -1, true, {})
+
+  vim.api.nvim_set_option_value('modifiable', false, { buf = buf })
 end
 
 function M.open_status_win()
   local buf = vim.api.nvim_create_buf(false, true)
-  set_content(buf)
-  vim.api.nvim_set_option_value('modifiable', false, { buf = buf })
-  vim.api.nvim_buf_set_keymap(buf, 'n', 'q', '<CMD>q<CR>', {})
-  vim.api.nvim_buf_set_keymap(buf, 'n', 's',
-      '<CMD>lua require("gitstatus").toggle_stage_file()<CR>', {})
+  local namespace = vim.api.nvim_create_namespace("")
+  vim.api.nvim_set_hl(namespace, "staged", { fg = "#26A641" })
+  vim.api.nvim_set_hl(namespace, "not_staged", { fg = "#D73A49" })
+  vim.api.nvim_set_hl_ns(namespace)
+
+  refresh_buffer(buf, namespace)
+
+  vim.api.nvim_buf_set_keymap(buf, 'n', 'q', '<CMD>q<CR>', {
+    desc = "Quit",
+  })
+  local toggle_stage_cmd = string.format(
+      '<CMD>lua require("gitstatus").toggle_stage_file(%s, %s)<CR>',
+      buf,
+      namespace
+  )
+  vim.api.nvim_buf_set_keymap(buf, 'n', 's', toggle_stage_cmd, {
+    desc = "Stage/unstage file on current line"
+  })
 
   vim.api.nvim_open_win(buf, true, {
     relative = 'editor',
@@ -139,7 +153,9 @@ function M.open_status_win()
   })
 end
 
-function M.toggle_stage_file()
+---@param buf integer
+---@param namespace integer
+function M.toggle_stage_file(buf, namespace)
   local row = vim.api.nvim_win_get_cursor(0)[1]
   local line = buf_lines[row]
   if line.file == nil then
@@ -151,10 +167,7 @@ function M.toggle_stage_file()
   else
     git_actions.stage_file(line.file.name)
   end
-  local buf = vim.api.nvim_get_current_buf()
-  vim.api.nvim_set_option_value('modifiable', true, { buf = buf })
-  vim.api.nvim_buf_set_lines(buf, 0, -1, true, {})
-  set_content(buf)
+  refresh_buffer(buf, namespace)
 end
 
 return M

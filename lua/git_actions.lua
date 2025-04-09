@@ -23,4 +23,13 @@ function M.unstage_file(file)
   end
 end
 
+function M.stage_all()
+  local obj = vim.system({'git', 'add', '-A'}, { text = true }):wait()
+  if obj.code ~= 0 then
+    vim.print("Unable to stage all changes:", obj.stderr)
+  else
+    vim.print(("Successfully staged all changes!"))
+  end
+end
+
 return M

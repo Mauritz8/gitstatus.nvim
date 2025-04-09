@@ -144,6 +144,15 @@ function M.open_status_win()
     desc = "Stage/unstage file on current line"
   })
 
+  local stage_all_cmd = string.format(
+      '<CMD>lua require("gitstatus").stage_all(%s, %s)<CR>',
+      buf,
+      namespace
+  )
+  vim.api.nvim_buf_set_keymap(buf, 'n', 'a', stage_all_cmd, {
+    desc = "Stage all changes"
+  })
+
   vim.api.nvim_open_win(buf, true, {
     relative = 'editor',
     row = 10,
@@ -167,6 +176,13 @@ function M.toggle_stage_file(buf, namespace)
   else
     git_actions.stage_file(line.file.name)
   end
+  refresh_buffer(buf, namespace)
+end
+
+---@param buf integer
+---@param namespace integer
+function M.stage_all(buf, namespace)
+  git_actions.stage_all()
   refresh_buffer(buf, namespace)
 end
 

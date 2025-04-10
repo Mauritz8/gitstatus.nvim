@@ -1,5 +1,5 @@
-local parser = require("parser")
-local git = require("git_actions")
+local parser = require('gitstatus.parser')
+local git = require('gitstatus.git')
 
 local M = {}
 

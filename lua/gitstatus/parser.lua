@@ -1,5 +1,5 @@
-require("file")
-local git = require('git_actions')
+require('gitstatus.file')
+local git = require('gitstatus.git')
 
 local M = {}
 

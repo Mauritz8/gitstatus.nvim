@@ -84,7 +84,7 @@ local function get_lines(files)
       if #lines > 0 then
         table.insert(lines, { str = "", highlight_group = nil, file = nil, })
       end
-      table.insert(lines, { str = name(i); highlight_group = nil, file = nil, })
+      table.insert(lines, { str = name(i), highlight_group = nil, file = nil, })
     end
     for _, file in ipairs(files_of_type) do
       local line = {
@@ -185,12 +185,20 @@ function M.toggle_stage_file(buf, namespace)
   local line = buf_lines[row]
   if line.file == nil then
     vim.print("Unable to stage file: invalid line")
-    return;
+    return
   end
   if line.file.state == FILE_STATE.staged then
-    git.unstage_file(line.file.name)
+    local err = git.unstage_file(line.file.name)
+    if err ~= nil then
+      vim.print(err)
+      return
+    end
   else
-    git.stage_file(line.file.name)
+    local err = git.stage_file(line.file.name)
+    if err ~= nil then
+      vim.print(err)
+      return
+    end
   end
   refresh_buffer(buf, namespace)
 end

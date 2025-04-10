@@ -19,34 +19,31 @@ function M.branch()
 end
 
 ---@param file string
+---@return string?
 function M.stage_file(file)
   local obj = vim.system({'git', 'add', file}, { text = true }):wait()
   if obj.code ~= 0 then
-    vim.print("Unable to stage file:", obj.stderr)
-  else
-    vim.print(("Successfully staged %s!"):format(file))
+    return "Unable to stage file: " .. obj.stderr
   end
 end
 
 ---@param file string
+---@return string?
 function M.unstage_file(file)
   local obj = vim.system(
     {'git', 'restore', '--staged', file},
     { text = true }
   ):wait()
   if obj.code ~= 0 then
-    vim.print("Unable to unstage file:", obj.stderr)
-  else
-    vim.print(("Successfully unstaged %s!"):format(file))
+    return "Unable to unstage file: " .. obj.stderr
   end
 end
 
+---@return string?
 function M.stage_all()
   local obj = vim.system({'git', 'add', '-A'}, { text = true }):wait()
   if obj.code ~= 0 then
-    vim.print("Unable to stage all changes:", obj.stderr)
-  else
-    vim.print(("Successfully staged all changes!"))
+    return "Unable to stage all changes: " .. obj.stderr
   end
 end
 

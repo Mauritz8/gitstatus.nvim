@@ -28,7 +28,7 @@ local function refresh_buffer(buf, namespace)
   if branch == nil then
     return "Unable to find current branch"
   end
-  buf_lines = out_formatter.get_lines(branch, files)
+  buf_lines = out_formatter.format_out_lines(branch, files)
   for i, line in ipairs(buf_lines) do
     local line_nr = i - 1
     vim.api.nvim_buf_set_lines(buf, line_nr, line_nr, true, {line.str})

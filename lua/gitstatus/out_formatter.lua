@@ -2,7 +2,7 @@ local M = {}
 
 ---@class Line
 ---@field str string
----@field highlight_group string
+---@field highlight_group string?
 ---@field file File?
 Line = {}
 
@@ -42,7 +42,7 @@ end
 
 ---@param files File[]
 ---@return Line[]
-function M.get_lines(branch, files)
+function M.format_out_lines(branch, files)
   local lines = {}
 
   table.insert(lines, {

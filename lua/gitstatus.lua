@@ -47,13 +47,13 @@ local function split_files_by_state(files)
 end
 
 ---@param files File[]
----@return Line[]
+---@return Line[], string?
 local function get_lines(files)
   local lines = {}
 
   local branch, err = parser.branch()
   if err ~= nil then
-    vim.print(err)
+    return {}, err
   else
     table.insert(lines, {
       str = "Branch: " .. branch,
@@ -71,7 +71,7 @@ local function get_lines(files)
       highlight_group = nil,
       file = nil,
     })
-    return lines
+    return lines, nil
   end
 
   local staged, not_staged, untracked = split_files_by_state(files)
@@ -106,6 +106,7 @@ end
 
 ---@param buf integer
 ---@param namespace integer
+---@return string?
 local function refresh_buffer(buf, namespace)
   local cursor_pos = vim.api.nvim_win_get_cursor(0)
   vim.api.nvim_set_option_value('modifiable', true, { buf = buf })
@@ -113,10 +114,13 @@ local function refresh_buffer(buf, namespace)
 
   local files, err = parser.retrieve_files()
   if err ~= nil then
-    vim.print(err)
-    return nil
+    return err
   end
-  buf_lines = get_lines(files)
+  local lines, err2 = get_lines(files)
+  if err2 ~= nil then
+    return err2
+  end
+  buf_lines = lines
   for i, line in ipairs(buf_lines) do
     local line_nr = i - 1
     vim.api.nvim_buf_set_lines(buf, line_nr, line_nr, true, {line.str})
@@ -138,7 +142,11 @@ function M.open_status_win()
   vim.api.nvim_set_hl(namespace, "not_staged", { fg = "#D73A49" })
   vim.api.nvim_set_hl_ns(namespace)
 
-  refresh_buffer(buf, namespace)
+  local err = refresh_buffer(buf, namespace)
+  if err ~= nil then
+    vim.print(err)
+    return
+  end
 
   vim.api.nvim_buf_set_keymap(buf, 'n', 'q', '<CMD>q<CR>', {
     desc = "Quit",

@@ -1,5 +1,0 @@
-describe("gitstatus.lua", function()
-  it("numbers are equal", function()
-    assert.equal(5, 4 + 1)
-  end)
-end)

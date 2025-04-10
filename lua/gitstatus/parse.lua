@@ -63,7 +63,7 @@ end
 
 ---@param status_output string
 ---@return File[]
-function M.retrieve_files(status_output)
+function M.git_status(status_output)
   local lines = split(status_output, '\n')
   local files = {}
   for _, line in ipairs(lines) do
@@ -77,7 +77,7 @@ end
 
 ---@param branch_output string
 ---@return string?
-function M.branch(branch_output)
+function M.git_branch(branch_output)
   local lines = split(branch_output, '\n')
   for _, line in ipairs(lines) do
     if line:find("*", 1, true) then

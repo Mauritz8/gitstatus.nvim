@@ -1,4 +1,4 @@
-local parser = require('gitstatus.parser')
+local parse = require('gitstatus.parse')
 local git = require('gitstatus.git')
 local out_formatter = require('gitstatus.out_formatter')
 
@@ -18,13 +18,13 @@ local function refresh_buffer(buf, namespace)
   if err ~= nil then
     return err
   end
-  local files = parser.retrieve_files(status_out)
+  local files = parse.git_status(status_out)
 
   local branch_out, err2 = git.branch()
   if err2 ~= nil then
     return err2
   end
-  local branch = parser.branch(branch_out)
+  local branch = parse.git_branch(branch_out)
   if branch == nil then
     return "Unable to find current branch"
   end

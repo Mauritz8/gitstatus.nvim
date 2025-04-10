@@ -1,33 +1,33 @@
-local parser = require('gitstatus.parser')
+local parse = require('gitstatus.parse')
 
-describe('parser.lua', function()
-  describe('parse git branch', function()
+describe('parse.lua', function()
+  describe('git_branch', function()
     it('only main exists', function()
       local input = '* main'
-      local branch = parser.branch(input)
+      local branch = parse.git_branch(input)
       assert.equal('main', branch)
     end)
     it('two branches on main', function()
       local input = '* main\ndev'
-      local branch = parser.branch(input)
+      local branch = parse.git_branch(input)
       assert.equal('main', branch)
     end)
     it('two branches not on main', function()
       local input = 'main\n* dev'
-      local branch = parser.branch(input)
+      local branch = parse.git_branch(input)
       assert.equal('dev', branch)
     end)
   end)
-  describe('parse git status', function()
+  describe('git_status', function()
     it('no changes', function()
       local input = ''
-      local files = parser.retrieve_files(input)
+      local files = parse.git_status(input)
       assert.are_same({}, files)
     end)
     describe('single file', function()
       it('untracked', function()
         local input = '?? file.txt'
-        local files = parser.retrieve_files(input)
+        local files = parse.git_status(input)
         local expected = {
           {
             name = 'file.txt',
@@ -39,7 +39,7 @@ describe('parser.lua', function()
       end)
       it('not staged modified', function()
         local input = ' M file.txt'
-        local files = parser.retrieve_files(input)
+        local files = parse.git_status(input)
         local expected = {
           {
             name = 'file.txt',
@@ -51,7 +51,7 @@ describe('parser.lua', function()
       end)
       it('not staged deleted', function()
         local input = ' D file.txt'
-        local files = parser.retrieve_files(input)
+        local files = parse.git_status(input)
         local expected = {
           {
             name = 'file.txt',
@@ -63,7 +63,7 @@ describe('parser.lua', function()
       end)
       it('staged modified', function()
         local input = 'M  file.txt'
-        local files = parser.retrieve_files(input)
+        local files = parse.git_status(input)
         local expected = {
           {
             name = 'file.txt',
@@ -75,7 +75,7 @@ describe('parser.lua', function()
       end)
       it('staged deleted', function()
         local input = 'D  file.txt'
-        local files = parser.retrieve_files(input)
+        local files = parse.git_status(input)
         local expected = {
           {
             name = 'file.txt',
@@ -87,7 +87,7 @@ describe('parser.lua', function()
       end)
       it('staged new file', function()
         local input = 'A  file.txt'
-        local files = parser.retrieve_files(input)
+        local files = parse.git_status(input)
         local expected = {
           {
             name = 'file.txt',
@@ -99,7 +99,7 @@ describe('parser.lua', function()
       end)
       it('staged renamed', function()
         local input = 'R  file.txt -> new.txt'
-        local files = parser.retrieve_files(input)
+        local files = parse.git_status(input)
         local expected = {
           {
             name = 'file.txt',

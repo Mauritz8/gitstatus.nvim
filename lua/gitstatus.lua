@@ -136,52 +136,9 @@ local function refresh_buffer(buf, namespace)
   end
 end
 
-function M.open_status_win()
-  local buf = vim.api.nvim_create_buf(false, true)
-  local namespace = vim.api.nvim_create_namespace("")
-  vim.api.nvim_set_hl(namespace, "staged", { fg = "#26A641" })
-  vim.api.nvim_set_hl(namespace, "not_staged", { fg = "#D73A49" })
-  vim.api.nvim_set_hl_ns(namespace)
-
-  local err = refresh_buffer(buf, namespace)
-  if err ~= nil then
-    vim.print(err)
-    return
-  end
-
-  vim.api.nvim_buf_set_keymap(buf, 'n', 'q', '<CMD>q<CR>', {
-    desc = "Quit",
-  })
-  local toggle_stage_cmd = string.format(
-      '<CMD>lua require("gitstatus").toggle_stage_file(%s, %s)<CR>',
-      buf,
-      namespace
-  )
-  vim.api.nvim_buf_set_keymap(buf, 'n', 's', toggle_stage_cmd, {
-    desc = "Stage/unstage file on current line"
-  })
-
-  local stage_all_cmd = string.format(
-      '<CMD>lua require("gitstatus").stage_all(%s, %s)<CR>',
-      buf,
-      namespace
-  )
-  vim.api.nvim_buf_set_keymap(buf, 'n', 'a', stage_all_cmd, {
-    desc = "Stage all changes"
-  })
-
-  vim.api.nvim_open_win(buf, true, {
-    relative = 'editor',
-    row = 10,
-    col = 60,
-    width = 65,
-    height = 15,
-  })
-end
-
 ---@param buf integer
 ---@param namespace integer
-function M.toggle_stage_file(buf, namespace)
+local function toggle_stage_file(buf, namespace)
   local row = vim.api.nvim_win_get_cursor(0)[1]
   local line = buf_lines[row]
   if line.file == nil then
@@ -206,9 +163,47 @@ end
 
 ---@param buf integer
 ---@param namespace integer
-function M.stage_all(buf, namespace)
+local function stage_all(buf, namespace)
   git.stage_all()
   refresh_buffer(buf, namespace)
+end
+
+
+function M.open_status_win()
+  local buf = vim.api.nvim_create_buf(false, true)
+  local namespace = vim.api.nvim_create_namespace("")
+  vim.api.nvim_set_hl(namespace, "staged", { fg = "#26A641" })
+  vim.api.nvim_set_hl(namespace, "not_staged", { fg = "#D73A49" })
+  vim.api.nvim_set_hl_ns(namespace)
+
+  local err = refresh_buffer(buf, namespace)
+  if err ~= nil then
+    vim.print(err)
+    return
+  end
+
+  vim.api.nvim_open_win(buf, true, {
+    relative = 'editor',
+    row = 10,
+    col = 60,
+    width = 65,
+    height = 15,
+  })
+
+  vim.keymap.set('n', 'q', '<CMD>q<CR>', {
+    buffer = true,
+    desc = "Quit",
+  })
+
+  vim.keymap.set('n', 's', function () toggle_stage_file(buf, namespace) end, {
+    buffer = true,
+    desc = "Stage/unstage file",
+  })
+
+  vim.keymap.set('n', 'a', function () stage_all(buf, namespace) end, {
+    buffer = true,
+    desc = "Stage all changes",
+  })
 end
 
 return M

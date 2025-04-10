@@ -14,15 +14,21 @@ local function refresh_buffer(buf, namespace)
   vim.api.nvim_set_option_value('modifiable', true, { buf = buf })
   vim.api.nvim_buf_set_lines(buf, 0, -1, true, {})
 
-  local files, err = parser.retrieve_files()
+  local status_out, err = git.status()
   if err ~= nil then
     return err
   end
-  local lines, err2 = out_formatter.get_lines(files)
+  local files = parser.retrieve_files(status_out)
+
+  local branch_out, err2 = git.branch()
   if err2 ~= nil then
     return err2
   end
-  buf_lines = lines
+  local branch = parser.branch(branch_out)
+  if branch == nil then
+    return "Unable to find current branch"
+  end
+  buf_lines = out_formatter.get_lines(branch, files)
   for i, line in ipairs(buf_lines) do
     local line_nr = i - 1
     vim.api.nvim_buf_set_lines(buf, line_nr, line_nr, true, {line.str})

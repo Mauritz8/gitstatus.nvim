@@ -1,5 +1,3 @@
-local parser = require('gitstatus.parser')
-
 local M = {}
 
 ---@class Line
@@ -43,20 +41,15 @@ local function split_files_by_state(files)
 end
 
 ---@param files File[]
----@return Line[], string?
-function M.get_lines(files)
+---@return Line[]
+function M.get_lines(branch, files)
   local lines = {}
 
-  local branch, err = parser.branch()
-  if err ~= nil then
-    return {}, err
-  else
-    table.insert(lines, {
-      str = "Branch: " .. branch,
-      highlight_group = nil,
-      file = nil,
-    })
-  end
+  table.insert(lines, {
+    str = "Branch: " .. branch,
+    highlight_group = nil,
+    file = nil,
+  })
 
   if #files == 0 then
     if #lines > 0 then
@@ -67,7 +60,7 @@ function M.get_lines(files)
       highlight_group = nil,
       file = nil,
     })
-    return lines, nil
+    return lines
   end
 
   local staged, not_staged, untracked = split_files_by_state(files)

@@ -1,5 +1,4 @@
 require('gitstatus.file')
-local git = require('gitstatus.git')
 
 local M = {}
 
@@ -62,9 +61,10 @@ local function line_to_files(line)
     return files
 end
 
----@param lines string[]
+---@param status_output string
 ---@return File[]
-local function lines_to_files(lines)
+function M.retrieve_files(status_output)
+  local lines = split(status_output, '\n')
   local files = {}
   for _, line in ipairs(lines) do
     local line_files = line_to_files(line)
@@ -75,29 +75,16 @@ local function lines_to_files(lines)
   return files
 end
 
----@return File[], string?
-function M.retrieve_files()
-  local out, err = git.status()
-  if err ~= nil then
-    return {}, err
-  end
-  local lines = split(out, '\n')
-  return lines_to_files(lines)
-end
-
----@return string, string?
-function M.branch()
-  local out, err = git.branch()
-  if err ~= nil then
-    return "", err
-  end
-  local lines = split(out, '\n')
+---@param branch_output string
+---@return string?
+function M.branch(branch_output)
+  local lines = split(branch_output, '\n')
   for _, line in ipairs(lines) do
     if line:find("*", 1, true) then
-      return line:sub(3), nil
+      return line:sub(3)
     end
   end
-  return "", "Unable to find current branch"
+  return nil
 end
 
 return M

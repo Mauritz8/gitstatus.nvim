@@ -108,7 +108,6 @@ end
 ---@param namespace integer
 ---@return string?
 local function refresh_buffer(buf, namespace)
-  local cursor_pos = vim.api.nvim_win_get_cursor(0)
   vim.api.nvim_set_option_value('modifiable', true, { buf = buf })
   vim.api.nvim_buf_set_lines(buf, 0, -1, true, {})
 
@@ -130,9 +129,11 @@ local function refresh_buffer(buf, namespace)
     })
   end
   vim.api.nvim_buf_set_lines(buf, -2, -1, true, {})
-
-  vim.api.nvim_win_set_cursor(0, cursor_pos)
   vim.api.nvim_set_option_value('modifiable', false, { buf = buf })
+
+  if vim.api.nvim_win_get_buf(0) == buf then
+    vim.api.nvim_win_set_cursor(0, {1, 0})
+  end
 end
 
 function M.open_status_win()

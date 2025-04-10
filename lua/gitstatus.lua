@@ -1,5 +1,5 @@
 local parser = require("parser")
-local git_actions = require("git_actions")
+local git = require("git_actions")
 
 local M = {}
 
@@ -51,8 +51,10 @@ end
 local function get_lines(files)
   local lines = {}
 
-  local branch = parser.branch()
-  if branch then
+  local branch, err = parser.branch()
+  if err ~= nil then
+    vim.print(err)
+  else
     table.insert(lines, {
       str = "Branch: " .. branch,
       highlight_group = nil,
@@ -109,7 +111,11 @@ local function refresh_buffer(buf, namespace)
   vim.api.nvim_set_option_value('modifiable', true, { buf = buf })
   vim.api.nvim_buf_set_lines(buf, 0, -1, true, {})
 
-  local files = parser.retrieve_files()
+  local files, err = parser.retrieve_files()
+  if err ~= nil then
+    vim.print(err)
+    return nil
+  end
   buf_lines = get_lines(files)
   for i, line in ipairs(buf_lines) do
     local line_nr = i - 1
@@ -174,9 +180,9 @@ function M.toggle_stage_file(buf, namespace)
     return;
   end
   if line.file.state == FILE_STATE.staged then
-    git_actions.unstage_file(line.file.name)
+    git.unstage_file(line.file.name)
   else
-    git_actions.stage_file(line.file.name)
+    git.stage_file(line.file.name)
   end
   refresh_buffer(buf, namespace)
 end
@@ -184,7 +190,7 @@ end
 ---@param buf integer
 ---@param namespace integer
 function M.stage_all(buf, namespace)
-  git_actions.stage_all()
+  git.stage_all()
   refresh_buffer(buf, namespace)
 end
 

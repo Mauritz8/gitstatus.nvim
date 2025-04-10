@@ -1,4 +1,5 @@
 require("file")
+local git = require('git_actions')
 
 local M = {}
 
@@ -11,18 +12,6 @@ local function split(str, delim)
     table.insert(lines, line)
   end
   return lines
-end
-
----@param cmd string
----@return string
-local function execute_cmd(cmd)
-  local handle = io.popen(cmd)
-  assert(handle, 'cannot execute command "' .. cmd .. '"')
-
-  local output = handle:read('*a')
-  handle:close()
-
-  return output
 end
 
 ---@param str string
@@ -86,23 +75,29 @@ local function lines_to_files(lines)
   return files
 end
 
----@return File[]
+---@return File[], string?
 function M.retrieve_files()
-  local git_status = execute_cmd('git status -s')
-  local lines = split(git_status, '\n')
+  local out, err = git.status()
+  if err ~= nil then
+    return {}, err
+  end
+  local lines = split(out, '\n')
   return lines_to_files(lines)
 end
 
----@return string?
+---@return string, string?
 function M.branch()
-  local out = execute_cmd('git branch')
+  local out, err = git.branch()
+  if err ~= nil then
+    return "", err
+  end
   local lines = split(out, '\n')
   for _, line in ipairs(lines) do
     if line:find("*", 1, true) then
-      return line:sub(3)
+      return line:sub(3), nil
     end
   end
-  return nil
+  return "", "Unable to find current branch"
 end
 
 return M

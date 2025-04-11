@@ -77,6 +77,18 @@ local function stage_all(buf, namespace)
   refresh_buffer(buf, namespace)
 end
 
+---@param lines Line[]
+---@return integer
+local function max_line_length(lines)
+  local max_length = 0
+  for _, line in ipairs(lines) do
+    local line_len = line.str:len()
+    if line_len > max_length then
+      max_length = line_len
+    end
+  end
+  return max_length
+end
 
 function M.open_status_win()
   local buf = vim.api.nvim_create_buf(false, true)
@@ -91,12 +103,15 @@ function M.open_status_win()
     return
   end
 
+  -- TODO: make window always centralized
+  local numberwidth = vim.api.nvim_get_option_value('numberwidth', {})
+  local margin = 5
   vim.api.nvim_open_win(buf, true, {
     relative = 'editor',
     row = 10,
     col = 60,
-    width = 65,
-    height = 15,
+    width = max_line_length(buf_lines) + numberwidth + margin,
+    height = #buf_lines,
   })
 
   vim.keymap.set('n', 'q', '<CMD>q<CR>', {

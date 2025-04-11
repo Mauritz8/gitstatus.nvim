@@ -1,6 +1,7 @@
 local parse = require('gitstatus.parse')
 local git = require('gitstatus.git')
 local out_formatter = require('gitstatus.out_formatter')
+local window = require('gitstatus.window')
 
 local M = {}
 
@@ -77,19 +78,6 @@ local function stage_all(buf, namespace)
   refresh_buffer(buf, namespace)
 end
 
----@param lines Line[]
----@return integer
-local function max_line_length(lines)
-  local max_length = 0
-  for _, line in ipairs(lines) do
-    local line_len = line.str:len()
-    if line_len > max_length then
-      max_length = line_len
-    end
-  end
-  return max_length
-end
-
 function M.open_status_win()
   local buf = vim.api.nvim_create_buf(false, true)
   local namespace = vim.api.nvim_create_namespace("")
@@ -104,19 +92,14 @@ function M.open_status_win()
   end
 
   local numberwidth = vim.api.nvim_get_option_value('numberwidth', {})
-  local margin = 5
-  local width = max_line_length(buf_lines) + numberwidth + margin
-  local height = #buf_lines
-  local window_width = vim.api.nvim_win_get_width(0)
-  local col = (window_width - width) / 2
-  local window_height = vim.api.nvim_win_get_height(0)
-  local row = ((window_height - height) / 2)
+  local width = window.width(buf_lines, numberwidth)
+  local height = window.height(buf_lines)
   vim.api.nvim_open_win(buf, true, {
     relative = 'editor',
     width = width,
     height = height,
-    row = row,
-    col = col,
+    row = window.row(vim.api.nvim_win_get_height(0), height),
+    col = window.column(vim.api.nvim_win_get_width(0), width),
   })
 
   vim.keymap.set('n', 'q', '<CMD>q<CR>', {

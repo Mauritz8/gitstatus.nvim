@@ -2,18 +2,35 @@ local parse = require('gitstatus.parse')
 local git = require('gitstatus.git')
 local out_formatter = require('gitstatus.out_formatter')
 local window = require('gitstatus.window')
-local line = require('gitstatus.line')
+local Line = require('gitstatus.line')
 
 local M = {}
 
 ---@type Line[]
 local buf_lines = {}
 
+---@param cursor_file File?
+---@return integer
+local function get_new_cursor_row(cursor_file)
+  local default = Line.next_file_index(buf_lines, 0)
+  if cursor_file == nil then
+    return default
+  else
+    local cursor_file_index = Line.line_index_of_file(buf_lines, cursor_file)
+    if cursor_file_index == nil then
+      return default
+    else
+      return cursor_file_index
+    end
+  end
+end
+
 -- TODO: recalculate window size and position on buffer refresh
 ---@param buf integer
 ---@param namespace integer
+---@param cursor_file File?
 ---@return string?
-local function refresh_buffer(buf, namespace)
+local function refresh_buffer(buf, namespace, cursor_file)
   vim.api.nvim_set_option_value('modifiable', true, { buf = buf })
   vim.api.nvim_buf_set_lines(buf, 0, -1, true, {})
 
@@ -44,7 +61,8 @@ local function refresh_buffer(buf, namespace)
   vim.api.nvim_set_option_value('modifiable', false, { buf = buf })
 
   if vim.api.nvim_win_get_buf(0) == buf then
-    vim.api.nvim_win_set_cursor(0, {1, 0})
+    -- TODO: keep cursor column value
+    vim.api.nvim_win_set_cursor(0, {get_new_cursor_row(cursor_file), 0})
   end
 end
 
@@ -70,14 +88,19 @@ local function toggle_stage_file(buf, namespace)
       return
     end
   end
-  refresh_buffer(buf, namespace)
+
+  local cursor_file_index = Line.next_file_index(buf_lines, row)
+  if cursor_file_index == row then
+    cursor_file_index = Line.prev_file_index(buf_lines, row)
+  end
+  refresh_buffer(buf, namespace, buf_lines[cursor_file_index].file)
 end
 
 ---@param buf integer
 ---@param namespace integer
 local function stage_all(buf, namespace)
   git.stage_all()
-  refresh_buffer(buf, namespace)
+  refresh_buffer(buf, namespace, nil)
 end
 
 local function go_next_file()
@@ -85,7 +108,7 @@ local function go_next_file()
   local row = cursor[1]
   local col = cursor[2]
 
-  local new_row = line.next_file_index(buf_lines, row)
+  local new_row = Line.next_file_index(buf_lines, row)
   vim.api.nvim_win_set_cursor(0, {new_row, col})
 end
 
@@ -94,7 +117,7 @@ local function go_prev_file()
   local row = cursor[1]
   local col = cursor[2]
 
-  local new_row = line.prev_file_index(buf_lines, row)
+  local new_row = Line.prev_file_index(buf_lines, row)
   vim.api.nvim_win_set_cursor(0, {new_row, col})
 end
 
@@ -105,7 +128,7 @@ function M.open_status_win()
   vim.api.nvim_set_hl(namespace, "not_staged", { fg = "#D73A49" })
   vim.api.nvim_set_hl_ns(namespace)
 
-  local err = refresh_buffer(buf, namespace)
+  local err = refresh_buffer(buf, namespace, nil)
   if err ~= nil then
     vim.print(err)
     return

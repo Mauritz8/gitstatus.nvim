@@ -1,3 +1,5 @@
+local M = {}
+
 ---@enum FILE_STATE
 FILE_STATE = {
   staged = 0,
@@ -19,3 +21,14 @@ FILE_EDIT_TYPE = {
 ---@field state FILE_STATE
 ---@field type FILE_EDIT_TYPE
 File = {}
+
+---@param file1 File
+---@param file2 File
+---@return boolean
+function M.equal(file1, file2)
+  return file1.name == file2.name
+      and file1.state == file2.state
+      and file1.type == file2.type
+end
+
+return M

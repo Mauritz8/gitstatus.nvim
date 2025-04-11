@@ -1,3 +1,5 @@
+local File = require('gitstatus.file')
+
 local M = {}
 
 ---@class Line
@@ -29,5 +31,18 @@ function M.prev_file_index(lines, current_line_index)
   end
   return current_line_index
 end
+
+---@param lines Line[]
+---@param file File
+---@return integer?
+function M.line_index_of_file(lines, file)
+  for i, line in ipairs(lines) do
+    if line.file ~= nil and File.equal(line.file, file) then
+      return i
+    end
+  end
+  return nil
+end
+
 
 return M

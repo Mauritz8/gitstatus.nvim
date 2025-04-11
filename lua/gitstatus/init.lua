@@ -40,6 +40,7 @@ end
 ---@param cursor_file File?
 ---@return string?
 local function refresh_buffer(buf, namespace, cursor_file)
+  local col = vim.api.nvim_win_get_cursor(0)[2]
   vim.api.nvim_set_option_value('modifiable', true, { buf = buf })
   vim.api.nvim_buf_set_lines(buf, 0, -1, true, {})
 
@@ -70,8 +71,7 @@ local function refresh_buffer(buf, namespace, cursor_file)
   vim.api.nvim_set_option_value('modifiable', false, { buf = buf })
 
   if vim.api.nvim_win_get_buf(0) == buf then
-    -- TODO: keep cursor column value
-    vim.api.nvim_win_set_cursor(0, {get_new_cursor_row(cursor_file), 0})
+    vim.api.nvim_win_set_cursor(0, {get_new_cursor_row(cursor_file), col})
   end
 end
 

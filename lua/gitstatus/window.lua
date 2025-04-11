@@ -14,16 +14,28 @@ local function max_line_length(lines)
 end
 
 ---@param lines Line[]
----@return integer
-function M.width(lines, numberwidth)
+---@param parent_win_width number
+---@return number
+function M.width(lines, numberwidth, parent_win_width)
   local margin = 5
-  return max_line_length(lines) + numberwidth + margin
+  local width = max_line_length(lines) + numberwidth + margin
+  if width > parent_win_width then
+    return parent_win_width
+  else
+    return width
+  end
 end
 
 ---@param lines Line[]
----@return integer
-function M.height(lines)
-  return #lines
+---@param parent_win_height number
+---@return number
+function M.height(lines, parent_win_height)
+  local len = #lines
+  if len > parent_win_height then
+    return parent_win_height
+  else
+    return len
+  end
 end
 
 ---@param parent_win_height number

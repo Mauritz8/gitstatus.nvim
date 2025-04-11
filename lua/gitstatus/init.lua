@@ -8,6 +8,7 @@ local M = {}
 ---@type Line[]
 local buf_lines = {}
 
+-- TODO: recalculate window size and position on buffer refresh
 ---@param buf integer
 ---@param namespace integer
 ---@return string?
@@ -91,15 +92,17 @@ function M.open_status_win()
     return
   end
 
+  local parent_win_width = vim.api.nvim_win_get_width(0)
+  local parent_win_height = vim.api.nvim_win_get_height(0)
   local numberwidth = vim.api.nvim_get_option_value('numberwidth', {})
-  local width = window.width(buf_lines, numberwidth)
-  local height = window.height(buf_lines)
+  local width = window.width(buf_lines, numberwidth, parent_win_width)
+  local height = window.height(buf_lines, parent_win_height)
   vim.api.nvim_open_win(buf, true, {
     relative = 'editor',
     width = width,
     height = height,
-    row = window.row(vim.api.nvim_win_get_height(0), height),
-    col = window.column(vim.api.nvim_win_get_width(0), width),
+    row = window.row(parent_win_height, height),
+    col = window.column(parent_win_width, width),
   })
 
   vim.keymap.set('n', 'q', '<CMD>q<CR>', {

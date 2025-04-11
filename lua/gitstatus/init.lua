@@ -191,7 +191,12 @@ function M.open_status_win()
     row = window.row(parent_win_height, height),
     col = window.column(parent_win_width, width),
   })
-  go_next_file()
+
+  local cursor_row = Line.next_file_index(buf_lines, 0)
+  if cursor_row == nil then
+    cursor_row = 1
+  end
+  vim.api.nvim_win_set_cursor(0, {cursor_row, 0})
 
   vim.keymap.set('n', 'q', '<CMD>q<CR>', {
     buffer = true,

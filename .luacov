@@ -1,0 +1,5 @@
+modules = {
+   ["gitstatus.*"] = "./lua",
+}
+reporter = "html"
+reportfile = "luacov.report.html"

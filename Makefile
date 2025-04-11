@@ -1,3 +1,3 @@
 .PHONY: test
 test:
-	busted -C ./lua ../test
+	busted --coverage --lpath=./lua/?.lua ./test

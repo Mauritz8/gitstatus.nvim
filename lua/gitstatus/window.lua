@@ -26,16 +26,16 @@ function M.height(lines)
   return #lines
 end
 
----@param parent_win_height integer
----@param win_height integer
----@return integer
+---@param parent_win_height number
+---@param win_height number
+---@return number
 function M.row(parent_win_height, win_height)
   return ((parent_win_height - win_height) / 2)
 end
 
----@param parent_win_width integer
----@param win_width integer
----@return integer
+---@param parent_win_width number
+---@param win_width number
+---@return number
 function M.column(parent_win_width, win_width)
   return (parent_win_width - win_width) / 2
 end

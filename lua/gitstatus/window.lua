@@ -42,7 +42,7 @@ end
 ---@param win_height number
 ---@return number
 function M.row(parent_win_height, win_height)
-  return ((parent_win_height - win_height) / 2)
+  return (parent_win_height - win_height) / 2
 end
 
 ---@param parent_win_width number

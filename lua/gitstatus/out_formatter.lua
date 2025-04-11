@@ -1,10 +1,6 @@
-local M = {}
+require('gitstatus.line')
 
----@class Line
----@field str string
----@field highlight_group string?
----@field file File?
-Line = {}
+local M = {}
 
 ---@param file_edit_type FILE_EDIT_TYPE
 ---@return string

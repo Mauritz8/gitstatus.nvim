@@ -2,6 +2,7 @@ local parse = require('gitstatus.parse')
 local git = require('gitstatus.git')
 local out_formatter = require('gitstatus.out_formatter')
 local window = require('gitstatus.window')
+local line = require('gitstatus.line')
 
 local M = {}
 
@@ -79,6 +80,24 @@ local function stage_all(buf, namespace)
   refresh_buffer(buf, namespace)
 end
 
+local function go_next_file()
+  local cursor = vim.api.nvim_win_get_cursor(0)
+  local row = cursor[1]
+  local col = cursor[2]
+
+  local new_row = line.next_file_index(buf_lines, row)
+  vim.api.nvim_win_set_cursor(0, {new_row, col})
+end
+
+local function go_prev_file()
+  local cursor = vim.api.nvim_win_get_cursor(0)
+  local row = cursor[1]
+  local col = cursor[2]
+
+  local new_row = line.prev_file_index(buf_lines, row)
+  vim.api.nvim_win_set_cursor(0, {new_row, col})
+end
+
 function M.open_status_win()
   local buf = vim.api.nvim_create_buf(false, true)
   local namespace = vim.api.nvim_create_namespace("")
@@ -104,6 +123,7 @@ function M.open_status_win()
     row = window.row(parent_win_height, height),
     col = window.column(parent_win_width, width),
   })
+  go_next_file()
 
   vim.keymap.set('n', 'q', '<CMD>q<CR>', {
     buffer = true,
@@ -118,6 +138,16 @@ function M.open_status_win()
   vim.keymap.set('n', 'a', function () stage_all(buf, namespace) end, {
     buffer = true,
     desc = "Stage all changes",
+  })
+
+  vim.keymap.set('n', 'j', go_next_file, {
+    buffer = true,
+    desc = "Go to next file",
+  })
+
+  vim.keymap.set('n', 'k', go_prev_file, {
+    buffer = true,
+    desc = "Go to previous file",
   })
 end
 

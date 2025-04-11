@@ -29,7 +29,7 @@ describe('line.lua', function()
         { str = '', file = nil },
       }
       local next_file_index = line.next_file_index(lines, 4)
-      assert.equal(4, next_file_index)
+      assert.equal(nil, next_file_index)
     end)
   end)
   describe('prev_file_index', function()
@@ -53,7 +53,7 @@ describe('line.lua', function()
         { str = '', file = nil },
       }
       local prev_file_index = line.prev_file_index(lines, 2)
-      assert.equal(2, prev_file_index)
+      assert.equal(nil, prev_file_index)
     end)
   end)
   describe('line_index_of_file', function()

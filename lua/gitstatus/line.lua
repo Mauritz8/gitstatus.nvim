@@ -10,6 +10,7 @@ Line = {}
 
 ---@param lines Line[]
 ---@param current_line_index integer
+---@return integer?
 function M.next_file_index(lines, current_line_index)
   for i = current_line_index + 1, #lines do
     local line = lines[i]
@@ -17,11 +18,12 @@ function M.next_file_index(lines, current_line_index)
       return i
     end
   end
-  return current_line_index
+  return nil
 end
 
 ---@param lines Line[]
 ---@param current_line_index integer
+---@return integer?
 function M.prev_file_index(lines, current_line_index)
   for i = current_line_index - 1, 1, -1 do
     local line = lines[i]
@@ -29,7 +31,7 @@ function M.prev_file_index(lines, current_line_index)
       return i
     end
   end
-  return current_line_index
+  return nil
 end
 
 ---@param lines Line[]

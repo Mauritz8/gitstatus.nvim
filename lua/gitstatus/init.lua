@@ -49,27 +49,30 @@ end
 ---@param buf integer
 ---@param namespace integer
 ---@param cursor_file File?
----@return string?
 local function refresh_buffer(buf, namespace, cursor_file)
   local col = vim.api.nvim_win_get_cursor(0)[2]
-  vim.api.nvim_set_option_value('modifiable', true, { buf = buf })
-  vim.api.nvim_buf_set_lines(buf, 0, -1, true, {})
 
   local status_out, err = git.status()
   if err ~= nil then
-    return err
+    err_msg(err)
+    return
   end
   local files = parse.git_status(status_out)
 
   local branch_out, err2 = git.branch()
   if err2 ~= nil then
-    return err2
+    err_msg(err2)
+    return
   end
   local branch = parse.git_branch(branch_out)
   if branch == nil then
-    return "Unable to find current branch"
+    err_msg("Unable to find current branch")
+    return
   end
+
   buf_lines = out_formatter.format_out_lines(branch, files)
+  vim.api.nvim_set_option_value('modifiable', true, { buf = buf })
+  vim.api.nvim_buf_set_lines(buf, 0, -1, true, {})
   for i, line in ipairs(buf_lines) do
     local line_nr = i - 1
     vim.api.nvim_buf_set_lines(buf, line_nr, line_nr, true, {line.str})
@@ -81,25 +84,23 @@ local function refresh_buffer(buf, namespace, cursor_file)
   vim.api.nvim_buf_set_lines(buf, -2, -1, true, {})
   vim.api.nvim_set_option_value('modifiable', false, { buf = buf })
 
-  if vim.api.nvim_win_get_buf(0) == buf then
-    local numberwidth = vim.api.nvim_get_option_value('numberwidth', {})
-    local width = window.width(buf_lines, numberwidth, parent_win_width)
-    local height = window.height(buf_lines, parent_win_height)
-    vim.api.nvim_win_set_config(0, {
-      relative = 'editor',
-      width = width,
-      height = height,
-      row = window.row(parent_win_height, height),
-      col = window.column(parent_win_width, width),
-    })
+  local numberwidth = vim.api.nvim_get_option_value('numberwidth', {})
+  local width = window.width(buf_lines, numberwidth, parent_win_width)
+  local height = window.height(buf_lines, parent_win_height)
+  vim.api.nvim_win_set_config(0, {
+    relative = 'editor',
+    width = width,
+    height = height,
+    row = window.row(parent_win_height, height),
+    col = window.column(parent_win_width, width),
+  })
 
-    -- in order to essentially refresh the buffer
-    -- without it the buffer shows a blank line at the bottom sometimes
-    -- which is only fixed by moving the cursor up one row
-    vim.api.nvim_win_set_cursor(0, {1, 0})
+  -- in order to essentially refresh the buffer
+  -- without it the buffer shows a blank line at the bottom sometimes
+  -- which is only fixed by moving the cursor up one row
+  vim.api.nvim_win_set_cursor(0, {1, 0})
 
-    vim.api.nvim_win_set_cursor(0, {get_new_cursor_row(cursor_file), col})
-  end
+  vim.api.nvim_win_set_cursor(0, {get_new_cursor_row(cursor_file), col})
 end
 
 local function quit()
@@ -225,57 +226,38 @@ function M.open_status_win()
   vim.api.nvim_set_hl(namespace, "staged", { fg = "#26A641" })
   vim.api.nvim_set_hl(namespace, "not_staged", { fg = "#D73A49" })
   vim.api.nvim_set_hl_ns(namespace)
-
-  local err = refresh_buffer(buf, namespace, nil)
-  if err ~= nil then
-    err_msg(err)
-    return
-  end
-
-  parent_win_width = vim.api.nvim_win_get_width(0)
-  parent_win_height = vim.api.nvim_win_get_height(0)
-  local numberwidth = vim.api.nvim_get_option_value('numberwidth', {})
-  local width = window.width(buf_lines, numberwidth, parent_win_width)
-  local height = window.height(buf_lines, parent_win_height)
+  local default_width = 1
+  local default_height = 1
   vim.api.nvim_open_win(buf, true, {
     relative = 'editor',
-    width = width,
-    height = height,
-    row = window.row(parent_win_height, height),
-    col = window.column(parent_win_width, width),
+    width = default_width,
+    height = default_height,
+    row = window.row(parent_win_height, default_height),
+    col = window.column(parent_win_width, default_width),
   })
 
-  local cursor_row = Line.next_file_index(buf_lines, 0)
-  if cursor_row == nil then
-    cursor_row = 1
-  end
-  vim.api.nvim_win_set_cursor(0, {cursor_row, 0})
+  refresh_buffer(buf, namespace, nil)
 
   vim.keymap.set('n', 'q', quit, {
     buffer = true,
     desc = "Quit",
   })
-
   vim.keymap.set('n', 's', function () toggle_stage_file(buf, namespace) end, {
     buffer = true,
     desc = "Stage/unstage file",
   })
-
   vim.keymap.set('n', 'a', function () stage_all(buf, namespace) end, {
     buffer = true,
     desc = "Stage all changes",
   })
-
   vim.keymap.set('n', 'j', go_next_file, {
     buffer = true,
     desc = "Go to next file",
   })
-
   vim.keymap.set('n', 'k', go_prev_file, {
     buffer = true,
     desc = "Go to previous file",
   })
-
   vim.keymap.set('n', '<CR>', open_file, {
     buffer = true,
     desc = "Open file",

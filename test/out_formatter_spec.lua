@@ -23,6 +23,16 @@ describe('out_formatter.lua', function()
           highlight_group = nil,
           file = nil,
         },
+        {
+          str = '',
+          highlight_group = nil,
+          file = nil,
+        },
+        {
+          str = 's = stage/unstage, a = stage all, c = commit, Enter = open file, q = quit',
+          highlight_group = nil,
+          file = nil,
+        },
       }
       assert.are_same(expected, lines)
     end)

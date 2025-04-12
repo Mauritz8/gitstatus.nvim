@@ -57,7 +57,6 @@ function M.format_out_lines(branch, files)
       highlight_group = nil,
       file = nil,
     })
-    return lines
   end
 
   local staged, not_staged, untracked = split_files_by_state(files)

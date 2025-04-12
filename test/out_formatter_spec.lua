@@ -113,7 +113,7 @@ describe('out_formatter.lua', function()
           file = nil,
         },
         {
-          str = 's = stage/unstage, c = commit, q = quit, a = stage all',
+          str = "s = stage/unstage, c = commit, a = stage all, q = quit",
           highlight_group = nil,
           file = nil,
         },

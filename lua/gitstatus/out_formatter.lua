@@ -82,7 +82,7 @@ function M.format_out_lines(branch, files)
   end
   table.insert(lines, { str = "", highlight_group = nil, file = nil, })
   table.insert(lines, {
-    str = "s = stage/unstage, c = commit, q = quit, a = stage all",
+    str = "s = stage/unstage, c = commit, a = stage all, q = quit",
     highlight_group = nil,
     file = nil,
   })

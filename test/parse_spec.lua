@@ -102,14 +102,9 @@ describe('parse.lua', function()
         local files = parse.git_status(input)
         local expected = {
           {
-            name = 'file.txt',
+            name = 'file.txt -> new.txt',
             state = FILE_STATE.staged,
-            type = FILE_EDIT_TYPE.deleted,
-          },
-          {
-            name = 'new.txt',
-            state = FILE_STATE.staged,
-            type = FILE_EDIT_TYPE.new,
+            type = FILE_EDIT_TYPE.renamed,
           },
         }
         assert.are_same(expected, files)

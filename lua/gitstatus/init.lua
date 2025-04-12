@@ -46,7 +46,6 @@ local function get_new_cursor_row(cursor_file)
   return cursor_file_index
 end
 
--- TODO: recalculate window size and position on buffer refresh
 ---@param buf integer
 ---@param namespace integer
 ---@param cursor_file File?
@@ -101,6 +100,10 @@ local function refresh_buffer(buf, namespace, cursor_file)
 
     vim.api.nvim_win_set_cursor(0, {get_new_cursor_row(cursor_file), col})
   end
+end
+
+local function quit()
+  vim.api.nvim_win_close(0, false)
 end
 
 ---@param buf integer
@@ -212,7 +215,7 @@ local function open_file()
     name = new_name
   end
 
-  vim.cmd('q')
+  quit()
   vim.cmd('e ' .. name)
 end
 
@@ -248,7 +251,7 @@ function M.open_status_win()
   end
   vim.api.nvim_win_set_cursor(0, {cursor_row, 0})
 
-  vim.keymap.set('n', 'q', '<CMD>q<CR>', {
+  vim.keymap.set('n', 'q', quit, {
     buffer = true,
     desc = "Quit",
   })

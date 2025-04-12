@@ -14,11 +14,19 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: test
-      run: make test
+    - name: Run tests
+      uses: lunarmodules/busted@v2.2.0
+      with:
+        args: --lpath=./lua/?.lua ./test
 
-    - name: lint
-      run: make lint
+    - name: Run linter
+      uses: lunarmodules/luacheck@v1.1.2
+      with:
+        args: . --globals vim
 
-    - name: format
-      run: make format-check
+    - name: Verify formatting
+      uses: JohnnyMorganz/stylua-action@v4.1.0
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        args: --check .
+        version: latest

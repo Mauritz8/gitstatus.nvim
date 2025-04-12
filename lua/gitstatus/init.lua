@@ -1,9 +1,9 @@
-local parse = require('gitstatus.parse')
+local Line = require('gitstatus.line')
+local Window = require('gitstatus.window')
+local file = require('gitstatus.file')
 local git = require('gitstatus.git')
 local out_formatter = require('gitstatus.out_formatter')
-local Window = require('gitstatus.window')
-local Line = require('gitstatus.line')
-local file = require('gitstatus.file')
+local parse = require('gitstatus.parse')
 
 local M = {}
 
@@ -18,12 +18,12 @@ local parent_win_height = vim.api.nvim_win_get_height(0)
 
 ---@param msg string
 local function err_msg(msg)
-  vim.api.nvim_echo({ { msg, "ErrorMsg" } }, false, {})
+  vim.api.nvim_echo({ { msg, 'ErrorMsg' } }, false, {})
 end
 
 ---@param msg string
 local function warn_msg(msg)
-  vim.api.nvim_echo({ { msg, "WarningMsg" } }, false, {})
+  vim.api.nvim_echo({ { msg, 'WarningMsg' } }, false, {})
 end
 
 ---@param cursor_file File?
@@ -56,7 +56,7 @@ local function refresh_buffer(buf, namespace, cursor_file)
   end
   local branch = parse.git_branch(branch_out)
   if branch == nil then
-    err_msg("Unable to find current branch")
+    err_msg('Unable to find current branch')
     return
   end
 
@@ -65,7 +65,7 @@ local function refresh_buffer(buf, namespace, cursor_file)
   vim.api.nvim_buf_set_lines(buf, 0, -1, true, {})
   for i, line in ipairs(buf_lines) do
     local line_nr = i - 1
-    vim.api.nvim_buf_set_lines(buf, line_nr, line_nr, true, {line.str})
+    vim.api.nvim_buf_set_lines(buf, line_nr, line_nr, true, { line.str })
     vim.api.nvim_buf_set_extmark(buf, namespace, line_nr, 0, {
       end_col = line.str:len(),
       hl_group = line.highlight_group,
@@ -88,9 +88,9 @@ local function refresh_buffer(buf, namespace, cursor_file)
   -- in order to essentially refresh the buffer
   -- without it the buffer shows a blank line at the bottom sometimes
   -- which is only fixed by moving the cursor up one row
-  vim.api.nvim_win_set_cursor(0, {1, 0})
+  vim.api.nvim_win_set_cursor(0, { 1, 0 })
 
-  vim.api.nvim_win_set_cursor(0, {get_new_cursor_row(cursor_file), col})
+  vim.api.nvim_win_set_cursor(0, { get_new_cursor_row(cursor_file), col })
 end
 
 local function quit()
@@ -98,13 +98,12 @@ local function quit()
   window = nil
 end
 
-
 -- TODO: refactor this function
 ---@param line Line
 ---@return boolean # success
 local function toggle_stage_line(line)
   if line.file == nil then
-    warn_msg("Unable to stage/unstage file: invalid line")
+    warn_msg('Unable to stage/unstage file: invalid line')
     return false
   end
 
@@ -150,9 +149,9 @@ local function go_next_file()
   local col = cursor[2]
 
   local new_row = Line.next_file_index(buf_lines, row)
-      or row < #buf_lines and row + 1
-      or row
-  vim.api.nvim_win_set_cursor(0, {new_row, col})
+    or row < #buf_lines and row + 1
+    or row
+  vim.api.nvim_win_set_cursor(0, { new_row, col })
 end
 
 local function go_prev_file()
@@ -161,16 +160,16 @@ local function go_prev_file()
   local col = cursor[2]
 
   local new_row = Line.prev_file_index(buf_lines, row)
-      or row > 1 and row - 1
-      or row
-  vim.api.nvim_win_set_cursor(0, {new_row, col})
+    or row > 1 and row - 1
+    or row
+  vim.api.nvim_win_set_cursor(0, { new_row, col })
 end
 
 local function open_file()
   local row = vim.api.nvim_win_get_cursor(0)[1]
   local line = buf_lines[row]
   if line.file == nil then
-    warn_msg("Unable to open file: invalid line")
+    warn_msg('Unable to open file: invalid line')
     return
   end
 
@@ -204,34 +203,36 @@ function M.open_status_win()
     row = Window.row(parent_win_height, default_height),
     col = Window.column(parent_win_width, default_width),
   })
-  local namespace = vim.api.nvim_create_namespace("")
-  vim.api.nvim_set_hl(namespace, "staged", { fg = "#26A641" })
-  vim.api.nvim_set_hl(namespace, "not_staged", { fg = "#D73A49" })
+  local namespace = vim.api.nvim_create_namespace('')
+  vim.api.nvim_set_hl(namespace, 'staged', { fg = '#26A641' })
+  vim.api.nvim_set_hl(namespace, 'not_staged', { fg = '#D73A49' })
   vim.api.nvim_win_set_hl_ns(window, namespace)
 
   refresh_buffer(buf, namespace, nil)
 
   vim.keymap.set('n', 'q', quit, {
     buffer = true,
-    desc = "Quit",
+    desc = 'Quit',
   })
 
   local function toggle_stage_file()
     local row = vim.api.nvim_win_get_cursor(0)[1]
     local line = buf_lines[row]
     local success = toggle_stage_line(line)
-    if not success then return end
+    if not success then
+      return
+    end
 
     local cursor_file_index = Line.next_file_index(buf_lines, row)
-        or Line.prev_file_index(buf_lines, row)
-    local cursor_file =
-        cursor_file_index ~= nil and buf_lines[cursor_file_index].file
-        or nil
+      or Line.prev_file_index(buf_lines, row)
+    local cursor_file = cursor_file_index ~= nil
+        and buf_lines[cursor_file_index].file
+      or nil
     refresh_buffer(buf, namespace, cursor_file)
   end
   vim.keymap.set('n', 's', toggle_stage_file, {
     buffer = true,
-    desc = "Stage/unstage file",
+    desc = 'Stage/unstage file',
   })
 
   local function stage_all()
@@ -240,19 +241,19 @@ function M.open_status_win()
   end
   vim.keymap.set('n', 'a', stage_all, {
     buffer = true,
-    desc = "Stage all changes",
+    desc = 'Stage all changes',
   })
   vim.keymap.set('n', 'j', go_next_file, {
     buffer = true,
-    desc = "Go to next file",
+    desc = 'Go to next file',
   })
   vim.keymap.set('n', 'k', go_prev_file, {
     buffer = true,
-    desc = "Go to previous file",
+    desc = 'Go to previous file',
   })
   vim.keymap.set('n', '<CR>', open_file, {
     buffer = true,
-    desc = "Open file",
+    desc = 'Open file',
   })
 end
 

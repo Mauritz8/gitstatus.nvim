@@ -1,5 +1,5 @@
-local out_formatter = require('gitstatus.out_formatter')
 local file = require('gitstatus.file')
+local out_formatter = require('gitstatus.out_formatter')
 
 describe('out_formatter.lua', function()
   describe('format_out_lines', function()
@@ -113,7 +113,7 @@ describe('out_formatter.lua', function()
           file = nil,
         },
         {
-          str = "s = stage/unstage, c = commit, a = stage all, q = quit",
+          str = 's = stage/unstage, c = commit, a = stage all, q = quit',
           highlight_group = nil,
           file = nil,
         },

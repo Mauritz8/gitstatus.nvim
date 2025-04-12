@@ -17,48 +17,50 @@ end
 ---@return FILE_EDIT_TYPE
 local function str_to_file_type(str)
   return str == 'M' and File.FILE_EDIT_TYPE.modified
-      or str == 'A' and File.FILE_EDIT_TYPE.new
-      or str == 'D' and File.FILE_EDIT_TYPE.deleted
-      or str == 'R' and File.FILE_EDIT_TYPE.renamed
-      or File.FILE_EDIT_TYPE.none
+    or str == 'A' and File.FILE_EDIT_TYPE.new
+    or str == 'D' and File.FILE_EDIT_TYPE.deleted
+    or str == 'R' and File.FILE_EDIT_TYPE.renamed
+    or File.FILE_EDIT_TYPE.none
 end
 
 ---@param line string
 ---@return File[]
 local function line_to_files(line)
-    local name = line:sub(4)
+  local name = line:sub(4)
 
-    if line:sub(1, 2) == "??" then
-      return {{
+  if line:sub(1, 2) == '??' then
+    return {
+      {
         name = name,
         state = File.FILE_STATE.untracked,
         type = File.FILE_EDIT_TYPE.none,
-      }}
-    end
+      },
+    }
+  end
 
-    local files = {}
+  local files = {}
 
-    local staged_file_type = line:sub(1, 1)
-    if staged_file_type ~= " " then
-      local file = {
-        name = name,
-        state = File.FILE_STATE.staged,
-        type = str_to_file_type(staged_file_type),
-      }
-      table.insert(files, file)
-    end
+  local staged_file_type = line:sub(1, 1)
+  if staged_file_type ~= ' ' then
+    local file = {
+      name = name,
+      state = File.FILE_STATE.staged,
+      type = str_to_file_type(staged_file_type),
+    }
+    table.insert(files, file)
+  end
 
-    local unstaged_file_type = line:sub(2, 2)
-    if unstaged_file_type ~= " " then
-      local file = {
-        name = name,
-        state = File.FILE_STATE.not_staged,
-        type = str_to_file_type(unstaged_file_type),
-      }
-      table.insert(files, file)
-    end
+  local unstaged_file_type = line:sub(2, 2)
+  if unstaged_file_type ~= ' ' then
+    local file = {
+      name = name,
+      state = File.FILE_STATE.not_staged,
+      type = str_to_file_type(unstaged_file_type),
+    }
+    table.insert(files, file)
+  end
 
-    return files
+  return files
 end
 
 ---@param status_output string
@@ -80,7 +82,7 @@ end
 function M.git_branch(branch_output)
   local lines = split(branch_output, '\n')
   for _, line in ipairs(lines) do
-    if line:find("*", 1, true) then
+    if line:find('*', 1, true) then
       return line:sub(3)
     end
   end

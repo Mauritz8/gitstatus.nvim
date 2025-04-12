@@ -4,7 +4,7 @@ local M = {}
 M.FILE_STATE = {
   staged = 0,
   not_staged = 1,
-  untracked = 2
+  untracked = 2,
 }
 
 ---@enum FILE_EDIT_TYPE
@@ -26,8 +26,8 @@ M.FILE_EDIT_TYPE = {
 ---@return boolean
 function M.equal(file1, file2)
   return file1.name == file2.name
-      and file1.state == file2.state
-      and file1.type == file2.type
+    and file1.state == file2.state
+    and file1.type == file2.type
 end
 
 return M

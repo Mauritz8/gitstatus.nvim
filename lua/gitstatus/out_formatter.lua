@@ -7,10 +7,10 @@ local M = {}
 ---@return string
 local function prefix(file_edit_type)
   return file_edit_type == File.FILE_EDIT_TYPE.modified and 'modified: '
-      or file_edit_type == File.FILE_EDIT_TYPE.new and 'new file: '
-      or file_edit_type == File.FILE_EDIT_TYPE.deleted and 'deleted: '
-      or file_edit_type == File.FILE_EDIT_TYPE.renamed and 'renamed: '
-      or ''
+    or file_edit_type == File.FILE_EDIT_TYPE.new and 'new file: '
+    or file_edit_type == File.FILE_EDIT_TYPE.deleted and 'deleted: '
+    or file_edit_type == File.FILE_EDIT_TYPE.renamed and 'renamed: '
+    or ''
 end
 
 ---@param file_state FILE_STATE
@@ -24,7 +24,7 @@ end
 local function split_files_by_state(files)
   local staged = {}
   local not_staged = {}
-  local untracked  = {}
+  local untracked = {}
   for _, file in ipairs(files) do
     if file.state == File.FILE_STATE.staged then
       table.insert(staged, file)
@@ -43,17 +43,17 @@ function M.format_out_lines(branch, files)
   local lines = {}
 
   table.insert(lines, {
-    str = "Branch: " .. branch,
+    str = 'Branch: ' .. branch,
     highlight_group = nil,
     file = nil,
   })
 
   if #files == 0 then
     if #lines > 0 then
-      table.insert(lines, { str = "", highlight_group = nil, file = nil, })
+      table.insert(lines, { str = '', highlight_group = nil, file = nil })
     end
     table.insert(lines, {
-      str = "nothing to commit, working tree clean",
+      str = 'nothing to commit, working tree clean',
       highlight_group = nil,
       file = nil,
     })
@@ -63,14 +63,14 @@ function M.format_out_lines(branch, files)
   local staged, not_staged, untracked = split_files_by_state(files)
   local file_table = { staged, not_staged, untracked }
   local name = function(i)
-    return i == 1 and "Staged:" or i == 2 and "Not staged:" or "Untracked:"
+    return i == 1 and 'Staged:' or i == 2 and 'Not staged:' or 'Untracked:'
   end
   for i, files_of_type in ipairs(file_table) do
     if #files_of_type > 0 then
       if #lines > 0 then
-        table.insert(lines, { str = "", highlight_group = nil, file = nil, })
+        table.insert(lines, { str = '', highlight_group = nil, file = nil })
       end
-      table.insert(lines, { str = name(i), highlight_group = nil, file = nil, })
+      table.insert(lines, { str = name(i), highlight_group = nil, file = nil })
     end
     for _, file in ipairs(files_of_type) do
       local line = {
@@ -81,9 +81,9 @@ function M.format_out_lines(branch, files)
       table.insert(lines, line)
     end
   end
-  table.insert(lines, { str = "", highlight_group = nil, file = nil, })
+  table.insert(lines, { str = '', highlight_group = nil, file = nil })
   table.insert(lines, {
-    str = "s = stage/unstage, c = commit, a = stage all, q = quit",
+    str = 's = stage/unstage, c = commit, a = stage all, q = quit',
     highlight_group = nil,
     file = nil,
   })

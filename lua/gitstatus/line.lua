@@ -45,5 +45,4 @@ function M.line_index_of_file(lines, file)
   return nil
 end
 
-
 return M

@@ -1,5 +1,5 @@
-local parse = require('gitstatus.parse')
 local file = require('gitstatus.file')
+local parse = require('gitstatus.parse')
 
 describe('parse.lua', function()
   describe('git_branch', function()
@@ -34,7 +34,7 @@ describe('parse.lua', function()
             name = 'file.txt',
             state = file.FILE_STATE.untracked,
             type = file.FILE_EDIT_TYPE.none,
-          }
+          },
         }
         assert.are_same(expected, files)
       end)
@@ -46,7 +46,7 @@ describe('parse.lua', function()
             name = 'file.txt',
             state = file.FILE_STATE.not_staged,
             type = file.FILE_EDIT_TYPE.modified,
-          }
+          },
         }
         assert.are_same(expected, files)
       end)
@@ -58,7 +58,7 @@ describe('parse.lua', function()
             name = 'file.txt',
             state = file.FILE_STATE.not_staged,
             type = file.FILE_EDIT_TYPE.deleted,
-          }
+          },
         }
         assert.are_same(expected, files)
       end)
@@ -70,7 +70,7 @@ describe('parse.lua', function()
             name = 'file.txt',
             state = file.FILE_STATE.staged,
             type = file.FILE_EDIT_TYPE.modified,
-          }
+          },
         }
         assert.are_same(expected, files)
       end)
@@ -82,7 +82,7 @@ describe('parse.lua', function()
             name = 'file.txt',
             state = file.FILE_STATE.staged,
             type = file.FILE_EDIT_TYPE.deleted,
-          }
+          },
         }
         assert.are_same(expected, files)
       end)
@@ -94,7 +94,7 @@ describe('parse.lua', function()
             name = 'file.txt',
             state = file.FILE_STATE.staged,
             type = file.FILE_EDIT_TYPE.new,
-          }
+          },
         }
         assert.are_same(expected, files)
       end)

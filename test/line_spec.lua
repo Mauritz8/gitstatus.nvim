@@ -1,5 +1,5 @@
-local line = require('gitstatus.line')
 local File = require('gitstatus.file')
+local line = require('gitstatus.line')
 
 local test_file = {
   name = '',

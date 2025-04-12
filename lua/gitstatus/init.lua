@@ -17,6 +17,11 @@ local parent_win_width = vim.api.nvim_win_get_width(0)
 local parent_win_height = vim.api.nvim_win_get_height(0)
 
 ---@param msg string
+local function echo_msg(msg)
+  vim.api.nvim_echo({ { msg } }, false, {})
+end
+
+---@param msg string
 local function err_msg(msg)
   vim.api.nvim_echo({ { msg, 'ErrorMsg' } }, false, {})
 end
@@ -191,6 +196,34 @@ local function open_file()
   vim.cmd('e ' .. name)
 end
 
+-- TODO: confirm that there is at least one staged file before opening commit prompt
+-- TODO: Write some guidelines in the commit prompt buffer
+local function open_commit_prompt()
+  quit()
+  local git_commit_file = '.git/COMMIT_EDITMSG'
+  vim.cmd('new ' ..  git_commit_file)
+  vim.api.nvim_buf_set_lines(0, 0, -1, true, {})
+  vim.api.nvim_create_autocmd({ 'BufLeave' }, {
+    pattern = { git_commit_file },
+    once = true,
+    callback = function(ev)
+      local file_saved = not vim.opt.modified:get()
+      if not file_saved then
+        vim.api.nvim_buf_delete(ev.buf, { force = true })
+        echo_msg('Aborting commit: commit message not saved')
+        return
+      end
+      local msg = vim.api.nvim_buf_get_lines(ev.buf, 0, -1, true)
+      local success_message, err = git.commit(msg)
+      if err ~= nil then
+        err_msg(err)
+      else
+        echo_msg(success_message)
+      end
+    end
+  })
+end
+
 function M.open_status_win()
   if window ~= nil then
     vim.api.nvim_set_current_win(window)
@@ -258,6 +291,10 @@ function M.open_status_win()
   vim.keymap.set('n', '<CR>', open_file, {
     buffer = true,
     desc = 'Open file',
+  })
+  vim.keymap.set('n', 'c', open_commit_prompt, {
+    buffer = true,
+    desc = 'Open commit prompt',
   })
 end
 

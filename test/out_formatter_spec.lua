@@ -1,5 +1,5 @@
 local out_formatter = require('gitstatus.out_formatter')
-require('gitstatus.file')
+local file = require('gitstatus.file')
 
 describe('out_formatter.lua', function()
   describe('format_out_lines', function()
@@ -31,23 +31,23 @@ describe('out_formatter.lua', function()
       local files = {
         {
           name = 'file1.txt',
-          state = FILE_STATE.staged,
-          type = FILE_EDIT_TYPE.modified,
+          state = file.FILE_STATE.staged,
+          type = file.FILE_EDIT_TYPE.modified,
         },
         {
           name = 'file2.txt',
-          state = FILE_STATE.not_staged,
-          type = FILE_EDIT_TYPE.deleted,
+          state = file.FILE_STATE.not_staged,
+          type = file.FILE_EDIT_TYPE.deleted,
         },
         {
           name = 'file3.txt',
-          state = FILE_STATE.untracked,
-          type = FILE_EDIT_TYPE.none,
+          state = file.FILE_STATE.untracked,
+          type = file.FILE_EDIT_TYPE.none,
         },
         {
           name = 'file4.txt',
-          state = FILE_STATE.staged,
-          type = FILE_EDIT_TYPE.new,
+          state = file.FILE_STATE.staged,
+          type = file.FILE_EDIT_TYPE.new,
         },
       }
       local lines = out_formatter.format_out_lines(branch, files)

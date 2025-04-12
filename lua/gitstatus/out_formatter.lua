@@ -1,21 +1,22 @@
 require('gitstatus.line')
+local File = require('gitstatus.file')
 
 local M = {}
 
 ---@param file_edit_type FILE_EDIT_TYPE
 ---@return string
 local function prefix(file_edit_type)
-  return file_edit_type == FILE_EDIT_TYPE.modified and 'modified: '
-      or file_edit_type == FILE_EDIT_TYPE.new and 'new file: '
-      or file_edit_type == FILE_EDIT_TYPE.deleted and 'deleted: '
-      or file_edit_type == FILE_EDIT_TYPE.renamed and 'renamed: '
+  return file_edit_type == File.FILE_EDIT_TYPE.modified and 'modified: '
+      or file_edit_type == File.FILE_EDIT_TYPE.new and 'new file: '
+      or file_edit_type == File.FILE_EDIT_TYPE.deleted and 'deleted: '
+      or file_edit_type == File.FILE_EDIT_TYPE.renamed and 'renamed: '
       or ''
 end
 
 ---@param file_state FILE_STATE
 ---@return string
 local function get_highlight_group(file_state)
-  return file_state == FILE_STATE.staged and 'staged' or 'not_staged'
+  return file_state == File.FILE_STATE.staged and 'staged' or 'not_staged'
 end
 
 ---@param files File[]
@@ -25,11 +26,11 @@ local function split_files_by_state(files)
   local not_staged = {}
   local untracked  = {}
   for _, file in ipairs(files) do
-    if file.state == FILE_STATE.staged then
+    if file.state == File.FILE_STATE.staged then
       table.insert(staged, file)
-    elseif file.state == FILE_STATE.not_staged then
+    elseif file.state == File.FILE_STATE.not_staged then
       table.insert(not_staged, file)
-    elseif file.state == FILE_STATE.untracked then
+    elseif file.state == File.FILE_STATE.untracked then
       table.insert(untracked, file)
     end
   end

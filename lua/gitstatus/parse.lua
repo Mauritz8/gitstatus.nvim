@@ -1,4 +1,4 @@
-require('gitstatus.file')
+local File = require('gitstatus.file')
 
 local M = {}
 
@@ -16,11 +16,11 @@ end
 ---@param str string
 ---@return FILE_EDIT_TYPE
 local function str_to_file_type(str)
-  return str == 'M' and FILE_EDIT_TYPE.modified
-      or str == 'A' and FILE_EDIT_TYPE.new
-      or str == 'D' and FILE_EDIT_TYPE.deleted
-      or str == 'R' and FILE_EDIT_TYPE.renamed
-      or FILE_EDIT_TYPE.none
+  return str == 'M' and File.FILE_EDIT_TYPE.modified
+      or str == 'A' and File.FILE_EDIT_TYPE.new
+      or str == 'D' and File.FILE_EDIT_TYPE.deleted
+      or str == 'R' and File.FILE_EDIT_TYPE.renamed
+      or File.FILE_EDIT_TYPE.none
 end
 
 ---@param line string
@@ -31,8 +31,8 @@ local function line_to_files(line)
     if line:sub(1, 2) == "??" then
       return {{
         name = name,
-        state = FILE_STATE.untracked,
-        type = FILE_EDIT_TYPE.none,
+        state = File.FILE_STATE.untracked,
+        type = File.FILE_EDIT_TYPE.none,
       }}
     end
 
@@ -42,7 +42,7 @@ local function line_to_files(line)
     if staged_file_type ~= " " then
       local file = {
         name = name,
-        state = FILE_STATE.staged,
+        state = File.FILE_STATE.staged,
         type = str_to_file_type(staged_file_type),
       }
       table.insert(files, file)
@@ -52,7 +52,7 @@ local function line_to_files(line)
     if unstaged_file_type ~= " " then
       local file = {
         name = name,
-        state = FILE_STATE.not_staged,
+        state = File.FILE_STATE.not_staged,
         type = str_to_file_type(unstaged_file_type),
       }
       table.insert(files, file)

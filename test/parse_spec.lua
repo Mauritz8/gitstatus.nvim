@@ -1,4 +1,5 @@
 local parse = require('gitstatus.parse')
+local file = require('gitstatus.file')
 
 describe('parse.lua', function()
   describe('git_branch', function()
@@ -31,8 +32,8 @@ describe('parse.lua', function()
         local expected = {
           {
             name = 'file.txt',
-            state = FILE_STATE.untracked,
-            type = FILE_EDIT_TYPE.none,
+            state = file.FILE_STATE.untracked,
+            type = file.FILE_EDIT_TYPE.none,
           }
         }
         assert.are_same(expected, files)
@@ -43,8 +44,8 @@ describe('parse.lua', function()
         local expected = {
           {
             name = 'file.txt',
-            state = FILE_STATE.not_staged,
-            type = FILE_EDIT_TYPE.modified,
+            state = file.FILE_STATE.not_staged,
+            type = file.FILE_EDIT_TYPE.modified,
           }
         }
         assert.are_same(expected, files)
@@ -55,8 +56,8 @@ describe('parse.lua', function()
         local expected = {
           {
             name = 'file.txt',
-            state = FILE_STATE.not_staged,
-            type = FILE_EDIT_TYPE.deleted,
+            state = file.FILE_STATE.not_staged,
+            type = file.FILE_EDIT_TYPE.deleted,
           }
         }
         assert.are_same(expected, files)
@@ -67,8 +68,8 @@ describe('parse.lua', function()
         local expected = {
           {
             name = 'file.txt',
-            state = FILE_STATE.staged,
-            type = FILE_EDIT_TYPE.modified,
+            state = file.FILE_STATE.staged,
+            type = file.FILE_EDIT_TYPE.modified,
           }
         }
         assert.are_same(expected, files)
@@ -79,8 +80,8 @@ describe('parse.lua', function()
         local expected = {
           {
             name = 'file.txt',
-            state = FILE_STATE.staged,
-            type = FILE_EDIT_TYPE.deleted,
+            state = file.FILE_STATE.staged,
+            type = file.FILE_EDIT_TYPE.deleted,
           }
         }
         assert.are_same(expected, files)
@@ -91,8 +92,8 @@ describe('parse.lua', function()
         local expected = {
           {
             name = 'file.txt',
-            state = FILE_STATE.staged,
-            type = FILE_EDIT_TYPE.new,
+            state = file.FILE_STATE.staged,
+            type = file.FILE_EDIT_TYPE.new,
           }
         }
         assert.are_same(expected, files)
@@ -103,8 +104,8 @@ describe('parse.lua', function()
         local expected = {
           {
             name = 'file.txt -> new.txt',
-            state = FILE_STATE.staged,
-            type = FILE_EDIT_TYPE.renamed,
+            state = file.FILE_STATE.staged,
+            type = file.FILE_EDIT_TYPE.renamed,
           },
         }
         assert.are_same(expected, files)

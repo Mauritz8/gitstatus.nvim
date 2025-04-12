@@ -6,7 +6,6 @@ local M = {}
 ---@field str string
 ---@field highlight_group string?
 ---@field file File?
-Line = {}
 
 ---@param lines Line[]
 ---@param current_line_index integer

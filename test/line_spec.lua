@@ -1,10 +1,10 @@
 local line = require('gitstatus.line')
-require('gitstatus.file')
+local File = require('gitstatus.file')
 
 local test_file = {
   name = '',
-  state = FILE_STATE.staged,
-  type = FILE_EDIT_TYPE.modified,
+  state = File.FILE_STATE.staged,
+  type = File.FILE_EDIT_TYPE.modified,
 }
 
 describe('line.lua', function()

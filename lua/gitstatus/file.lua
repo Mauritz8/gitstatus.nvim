@@ -1,14 +1,14 @@
 local M = {}
 
 ---@enum FILE_STATE
-FILE_STATE = {
+M.FILE_STATE = {
   staged = 0,
   not_staged = 1,
   untracked = 2
 }
 
 ---@enum FILE_EDIT_TYPE
-FILE_EDIT_TYPE = {
+M.FILE_EDIT_TYPE = {
   modified = 0,
   new = 1,
   deleted = 2,
@@ -20,7 +20,6 @@ FILE_EDIT_TYPE = {
 ---@field name string
 ---@field state FILE_STATE
 ---@field type FILE_EDIT_TYPE
-File = {}
 
 ---@param file1 File
 ---@param file2 File

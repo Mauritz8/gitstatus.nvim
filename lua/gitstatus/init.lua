@@ -3,6 +3,7 @@ local git = require('gitstatus.git')
 local out_formatter = require('gitstatus.out_formatter')
 local Window = require('gitstatus.window')
 local Line = require('gitstatus.line')
+local file = require('gitstatus.file')
 
 local M = {}
 
@@ -97,6 +98,8 @@ local function quit()
   window = nil
 end
 
+
+-- TODO: refactor this function
 ---@param line Line
 ---@return boolean # success
 local function toggle_stage_line(line)
@@ -105,7 +108,7 @@ local function toggle_stage_line(line)
     return false
   end
 
-  if line.file.state ~= FILE_STATE.staged then
+  if line.file.state ~= file.FILE_STATE.staged then
     local err = git.stage_file(line.file.name)
     if err ~= nil then
       err_msg(err)
@@ -114,7 +117,7 @@ local function toggle_stage_line(line)
     return true
   end
 
-  if line.file.type == FILE_EDIT_TYPE.renamed then
+  if line.file.type == file.FILE_EDIT_TYPE.renamed then
     local old_name, new_name, err = parse.git_renamed_file(line.file.name)
     if err ~= nil then
       err_msg('Unable to unstage file: ' .. err)
@@ -172,7 +175,7 @@ local function open_file()
   end
 
   local name = line.file.name
-  if line.file.type == FILE_EDIT_TYPE.renamed then
+  if line.file.type == file.FILE_EDIT_TYPE.renamed then
     local _, new_name, err = parse.git_renamed_file(line.file.name)
     if err ~= nil then
       err_msg('Unable to open file: ' .. err)

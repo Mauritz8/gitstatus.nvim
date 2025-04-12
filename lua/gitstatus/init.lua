@@ -103,10 +103,28 @@ local function toggle_stage_file(buf, namespace)
     return
   end
   if line.file.state == FILE_STATE.staged then
-    local err = git.unstage_file(line.file.name)
-    if err ~= nil then
-      vim.print(err)
-      return
+    if line.file.type == FILE_EDIT_TYPE.renamed then
+      local old_name, new_name, err = parse.git_renamed_file(line.file.name)
+      if err ~= nil then
+        vim.print('Unable to unstage file: ', err)
+        return
+      end
+      err = git.unstage_file(old_name)
+      if err ~= nil then
+        vim.print(err)
+        return
+      end
+      err = git.unstage_file(new_name)
+      if err ~= nil then
+        vim.print(err)
+        return
+      end
+    else
+      local err = git.unstage_file(line.file.name)
+      if err ~= nil then
+        vim.print(err)
+        return
+      end
     end
   else
     local err = git.stage_file(line.file.name)

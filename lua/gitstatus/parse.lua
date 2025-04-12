@@ -87,4 +87,14 @@ function M.git_branch(branch_output)
   return nil
 end
 
+---@param renamed_file_name string
+---@return string, string, string? # old name, new name, error
+function M.git_renamed_file(renamed_file_name)
+  local names = split(renamed_file_name, ' %-> ')
+  if #names ~= 2 then
+    return '', '', 'could not parse file names'
+  end
+  return names[1], names[2], nil
+end
+
 return M

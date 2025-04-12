@@ -184,6 +184,28 @@ local function go_prev_file()
   vim.api.nvim_win_set_cursor(0, {new_row, col})
 end
 
+local function open_file()
+  local row = vim.api.nvim_win_get_cursor(0)[1]
+  local line = buf_lines[row]
+  if line.file == nil then
+    vim.print("Unable to open file: invalid line")
+    return
+  end
+
+  local name = line.file.name
+  if line.file.type == FILE_EDIT_TYPE.renamed then
+    local _, new_name, err = parse.git_renamed_file(line.file.name)
+    if err ~= nil then
+      vim.print('Unable to open file: ' .. err)
+      return
+    end
+    name = new_name
+  end
+
+  vim.cmd('q')
+  vim.cmd('e ' .. name)
+end
+
 function M.open_status_win()
   local buf = vim.api.nvim_create_buf(false, true)
   local namespace = vim.api.nvim_create_namespace("")
@@ -239,6 +261,11 @@ function M.open_status_win()
   vim.keymap.set('n', 'k', go_prev_file, {
     buffer = true,
     desc = "Go to previous file",
+  })
+
+  vim.keymap.set('n', '<CR>', open_file, {
+    buffer = true,
+    desc = "Open file",
   })
 end
 

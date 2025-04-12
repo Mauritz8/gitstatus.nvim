@@ -1,13 +1,16 @@
 local parse = require('gitstatus.parse')
 local git = require('gitstatus.git')
 local out_formatter = require('gitstatus.out_formatter')
-local window = require('gitstatus.window')
+local Window = require('gitstatus.window')
 local Line = require('gitstatus.line')
 
 local M = {}
 
 ---@type Line[]
 local buf_lines = {}
+
+---@type integer?
+local window = nil
 
 local parent_win_width = vim.api.nvim_win_get_width(0)
 local parent_win_height = vim.api.nvim_win_get_height(0)
@@ -85,14 +88,14 @@ local function refresh_buffer(buf, namespace, cursor_file)
   vim.api.nvim_set_option_value('modifiable', false, { buf = buf })
 
   local numberwidth = vim.api.nvim_get_option_value('numberwidth', {})
-  local width = window.width(buf_lines, numberwidth, parent_win_width)
-  local height = window.height(buf_lines, parent_win_height)
+  local width = Window.width(buf_lines, numberwidth, parent_win_width)
+  local height = Window.height(buf_lines, parent_win_height)
   vim.api.nvim_win_set_config(0, {
     relative = 'editor',
     width = width,
     height = height,
-    row = window.row(parent_win_height, height),
-    col = window.column(parent_win_width, width),
+    row = Window.row(parent_win_height, height),
+    col = Window.column(parent_win_width, width),
   })
 
   -- in order to essentially refresh the buffer
@@ -105,6 +108,7 @@ end
 
 local function quit()
   vim.api.nvim_win_close(0, false)
+  window = nil
 end
 
 ---@param line Line
@@ -206,20 +210,25 @@ local function open_file()
 end
 
 function M.open_status_win()
+  if window ~= nil then
+    vim.api.nvim_set_current_win(window)
+    return
+  end
+
   local buf = vim.api.nvim_create_buf(false, true)
   local default_width = 1
   local default_height = 1
-  local win = vim.api.nvim_open_win(buf, true, {
+  window = vim.api.nvim_open_win(buf, true, {
     relative = 'editor',
     width = default_width,
     height = default_height,
-    row = window.row(parent_win_height, default_height),
-    col = window.column(parent_win_width, default_width),
+    row = Window.row(parent_win_height, default_height),
+    col = Window.column(parent_win_width, default_width),
   })
   local namespace = vim.api.nvim_create_namespace("")
   vim.api.nvim_set_hl(namespace, "staged", { fg = "#26A641" })
   vim.api.nvim_set_hl(namespace, "not_staged", { fg = "#D73A49" })
-  vim.api.nvim_win_set_hl_ns(win, namespace)
+  vim.api.nvim_win_set_hl_ns(window, namespace)
 
   refresh_buffer(buf, namespace, nil)
 

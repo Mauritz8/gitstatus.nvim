@@ -12,6 +12,16 @@ local buf_lines = {}
 local parent_win_width = vim.api.nvim_win_get_width(0)
 local parent_win_height = vim.api.nvim_win_get_height(0)
 
+---@param msg string
+local function err_msg(msg)
+  vim.api.nvim_echo({ { msg, "ErrorMsg" } }, false, {})
+end
+
+---@param msg string
+local function warn_msg(msg)
+  vim.api.nvim_echo({ { msg, "WarningMsg" } }, false, {})
+end
+
 ---@return integer
 local function default_cursor_row()
   local first_file_index = Line.next_file_index(buf_lines, 0)
@@ -99,37 +109,37 @@ local function toggle_stage_file(buf, namespace)
   local row = vim.api.nvim_win_get_cursor(0)[1]
   local line = buf_lines[row]
   if line.file == nil then
-    vim.print("Unable to stage file: invalid line")
+    warn_msg("Unable to stage file: invalid line")
     return
   end
   if line.file.state == FILE_STATE.staged then
     if line.file.type == FILE_EDIT_TYPE.renamed then
       local old_name, new_name, err = parse.git_renamed_file(line.file.name)
       if err ~= nil then
-        vim.print('Unable to unstage file: ', err)
+        err_msg('Unable to unstage file: ' .. err)
         return
       end
       err = git.unstage_file(old_name)
       if err ~= nil then
-        vim.print(err)
+        err_msg(err)
         return
       end
       err = git.unstage_file(new_name)
       if err ~= nil then
-        vim.print(err)
+        err_msg(err)
         return
       end
     else
       local err = git.unstage_file(line.file.name)
       if err ~= nil then
-        vim.print(err)
+        err_msg(err)
         return
       end
     end
   else
     local err = git.stage_file(line.file.name)
     if err ~= nil then
-      vim.print(err)
+      err_msg(err)
       return
     end
   end
@@ -188,7 +198,7 @@ local function open_file()
   local row = vim.api.nvim_win_get_cursor(0)[1]
   local line = buf_lines[row]
   if line.file == nil then
-    vim.print("Unable to open file: invalid line")
+    warn_msg("Unable to open file: invalid line")
     return
   end
 
@@ -196,7 +206,7 @@ local function open_file()
   if line.file.type == FILE_EDIT_TYPE.renamed then
     local _, new_name, err = parse.git_renamed_file(line.file.name)
     if err ~= nil then
-      vim.print('Unable to open file: ' .. err)
+      err_msg('Unable to open file: ' .. err)
       return
     end
     name = new_name
@@ -215,7 +225,7 @@ function M.open_status_win()
 
   local err = refresh_buffer(buf, namespace, nil)
   if err ~= nil then
-    vim.print(err)
+    err_msg(err)
     return
   end
 

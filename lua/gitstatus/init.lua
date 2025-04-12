@@ -196,12 +196,16 @@ local function open_file()
   vim.cmd('e ' .. name)
 end
 
--- TODO: confirm that there is at least one staged file before opening commit prompt
 -- TODO: Write some guidelines in the commit prompt buffer
 local function open_commit_prompt()
+  if Line.staged_files(buf_lines) == 0 then
+    warn_msg('Unable to commit: no staged files')
+    return
+  end
+
   quit()
   local git_commit_file = '.git/COMMIT_EDITMSG'
-  vim.cmd('new ' ..  git_commit_file)
+  vim.cmd('new ' .. git_commit_file)
   vim.api.nvim_buf_set_lines(0, 0, -1, true, {})
   vim.api.nvim_create_autocmd({ 'BufLeave' }, {
     pattern = { git_commit_file },
@@ -220,7 +224,7 @@ local function open_commit_prompt()
       else
         echo_msg(success_message)
       end
-    end
+    end,
   })
 end
 

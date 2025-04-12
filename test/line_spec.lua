@@ -112,4 +112,72 @@ describe('line.lua', function()
       assert.equal(nil, line_index)
     end)
   end)
+  describe('staged_files', function()
+    it('multiple staged files', function()
+      local lines = {
+        {
+          str = '',
+          file = {
+            name = 'a',
+            state = File.FILE_STATE.staged,
+          },
+        },
+        {
+          str = '',
+          file = {
+            name = 'b',
+            state = File.FILE_STATE.untracked,
+          },
+        },
+        {
+          str = '',
+          file = {
+            name = 'c',
+            state = File.FILE_STATE.not_staged,
+          },
+        },
+        {
+          str = '',
+          file = {
+            name = 'd',
+            state = File.FILE_STATE.staged,
+          },
+        },
+      }
+      assert.equal(2, line.staged_files(lines))
+    end)
+    it('no staged files', function()
+      local lines = {
+        {
+          str = '',
+          file = {
+            name = 'a',
+            state = File.FILE_STATE.not_staged,
+          },
+        },
+        {
+          str = '',
+          file = {
+            name = 'b',
+            state = File.FILE_STATE.untracked,
+          },
+        },
+        {
+          str = '',
+          file = {
+            name = 'c',
+            state = File.FILE_STATE.not_staged,
+          },
+        },
+        {
+          str = '',
+          file = {
+            name = 'd',
+            state = File.FILE_STATE.not_staged,
+          },
+        },
+      }
+      assert.equal(0, line.staged_files(lines))
+    end)
+  end)
 end)

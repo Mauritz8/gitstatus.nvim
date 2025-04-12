@@ -45,4 +45,16 @@ function M.line_index_of_file(lines, file)
   return nil
 end
 
+---@param lines Line[]
+---@return integer
+function M.staged_files(lines)
+  local count = 0
+  for _, line in ipairs(lines) do
+    if line.file and line.file.state == File.FILE_STATE.staged then
+      count = count + 1
+    end
+  end
+  return count
+end
+
 return M

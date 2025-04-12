@@ -108,43 +108,47 @@ local function quit()
 end
 
 ---@param line Line
+---@return boolean # success
 local function toggle_stage_line(line)
   if line.file == nil then
     warn_msg("Unable to stage/unstage file: invalid line")
-    return
+    return false
   end
 
   if line.file.state ~= FILE_STATE.staged then
     local err = git.stage_file(line.file.name)
     if err ~= nil then
       err_msg(err)
+      return false
     end
-    return
+    return true
   end
 
   if line.file.type == FILE_EDIT_TYPE.renamed then
     local old_name, new_name, err = parse.git_renamed_file(line.file.name)
     if err ~= nil then
       err_msg('Unable to unstage file: ' .. err)
-      return
+      return false
     end
     err = git.unstage_file(old_name)
     if err ~= nil then
       err_msg(err)
-      return
+      return false
     end
     err = git.unstage_file(new_name)
     if err ~= nil then
       err_msg(err)
-      return
+      return false
     end
+    return true
   end
 
   local err = git.unstage_file(line.file.name)
   if err ~= nil then
     err_msg(err)
-    return
+    return false
   end
+  return true
 end
 
 local function go_next_file()
@@ -227,7 +231,8 @@ function M.open_status_win()
   local function toggle_stage_file()
     local row = vim.api.nvim_win_get_cursor(0)[1]
     local line = buf_lines[row]
-    toggle_stage_line(line)
+    local success = toggle_stage_line(line)
+    if not success then return end
 
     local cursor_file_index = Line.next_file_index(buf_lines, row)
     if cursor_file_index == nil then

@@ -26,7 +26,7 @@ end
 local function default_cursor_row()
   local first_file_index = Line.next_file_index(buf_lines, 0)
   if first_file_index == nil then
-    return 0
+    return 1
   end
   return first_file_index
 end
@@ -107,63 +107,44 @@ local function quit()
   vim.api.nvim_win_close(0, false)
 end
 
----@param buf integer
----@param namespace integer
-local function toggle_stage_file(buf, namespace)
-  local row = vim.api.nvim_win_get_cursor(0)[1]
-  local line = buf_lines[row]
+---@param line Line
+local function toggle_stage_line(line)
   if line.file == nil then
-    warn_msg("Unable to stage file: invalid line")
+    warn_msg("Unable to stage/unstage file: invalid line")
     return
   end
-  if line.file.state == FILE_STATE.staged then
-    if line.file.type == FILE_EDIT_TYPE.renamed then
-      local old_name, new_name, err = parse.git_renamed_file(line.file.name)
-      if err ~= nil then
-        err_msg('Unable to unstage file: ' .. err)
-        return
-      end
-      err = git.unstage_file(old_name)
-      if err ~= nil then
-        err_msg(err)
-        return
-      end
-      err = git.unstage_file(new_name)
-      if err ~= nil then
-        err_msg(err)
-        return
-      end
-    else
-      local err = git.unstage_file(line.file.name)
-      if err ~= nil then
-        err_msg(err)
-        return
-      end
-    end
-  else
+
+  if line.file.state ~= FILE_STATE.staged then
     local err = git.stage_file(line.file.name)
+    if err ~= nil then
+      err_msg(err)
+    end
+    return
+  end
+
+  if line.file.type == FILE_EDIT_TYPE.renamed then
+    local old_name, new_name, err = parse.git_renamed_file(line.file.name)
+    if err ~= nil then
+      err_msg('Unable to unstage file: ' .. err)
+      return
+    end
+    err = git.unstage_file(old_name)
+    if err ~= nil then
+      err_msg(err)
+      return
+    end
+    err = git.unstage_file(new_name)
     if err ~= nil then
       err_msg(err)
       return
     end
   end
 
-  local cursor_file_index = Line.next_file_index(buf_lines, row)
-  if cursor_file_index == nil then
-    cursor_file_index = Line.prev_file_index(buf_lines, row)
+  local err = git.unstage_file(line.file.name)
+  if err ~= nil then
+    err_msg(err)
+    return
   end
-  local cursor_file = nil
-  if cursor_file_index ~= nil then
-    cursor_file = buf_lines[cursor_file_index].file
-  end
-  refresh_buffer(buf, namespace, cursor_file)
-end
-
----@param buf integer
----@param namespace integer
-local function stage_all(buf, namespace)
-  git.stage_all()
-  refresh_buffer(buf, namespace, nil)
 end
 
 local function go_next_file()
@@ -222,19 +203,19 @@ end
 
 function M.open_status_win()
   local buf = vim.api.nvim_create_buf(false, true)
-  local namespace = vim.api.nvim_create_namespace("")
-  vim.api.nvim_set_hl(namespace, "staged", { fg = "#26A641" })
-  vim.api.nvim_set_hl(namespace, "not_staged", { fg = "#D73A49" })
-  vim.api.nvim_set_hl_ns(namespace)
   local default_width = 1
   local default_height = 1
-  vim.api.nvim_open_win(buf, true, {
+  local win = vim.api.nvim_open_win(buf, true, {
     relative = 'editor',
     width = default_width,
     height = default_height,
     row = window.row(parent_win_height, default_height),
     col = window.column(parent_win_width, default_width),
   })
+  local namespace = vim.api.nvim_create_namespace("")
+  vim.api.nvim_set_hl(namespace, "staged", { fg = "#26A641" })
+  vim.api.nvim_set_hl(namespace, "not_staged", { fg = "#D73A49" })
+  vim.api.nvim_win_set_hl_ns(win, namespace)
 
   refresh_buffer(buf, namespace, nil)
 
@@ -242,11 +223,32 @@ function M.open_status_win()
     buffer = true,
     desc = "Quit",
   })
-  vim.keymap.set('n', 's', function () toggle_stage_file(buf, namespace) end, {
+
+  local function toggle_stage_file()
+    local row = vim.api.nvim_win_get_cursor(0)[1]
+    local line = buf_lines[row]
+    toggle_stage_line(line)
+
+    local cursor_file_index = Line.next_file_index(buf_lines, row)
+    if cursor_file_index == nil then
+      cursor_file_index = Line.prev_file_index(buf_lines, row)
+    end
+    local cursor_file = nil
+    if cursor_file_index ~= nil then
+      cursor_file = buf_lines[cursor_file_index].file
+    end
+    refresh_buffer(buf, namespace, cursor_file)
+  end
+  vim.keymap.set('n', 's', toggle_stage_file, {
     buffer = true,
     desc = "Stage/unstage file",
   })
-  vim.keymap.set('n', 'a', function () stage_all(buf, namespace) end, {
+
+  local function stage_all()
+    git.stage_all()
+    refresh_buffer(buf, namespace, nil)
+  end
+  vim.keymap.set('n', 'a', stage_all, {
     buffer = true,
     desc = "Stage all changes",
   })

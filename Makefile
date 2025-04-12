@@ -9,3 +9,7 @@ lint:
 .PHONY: format
 format:
 	stylua .
+
+.PHONY: format-check
+format-check:
+	stylua --check .

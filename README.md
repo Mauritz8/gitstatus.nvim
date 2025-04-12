@@ -24,3 +24,10 @@ Open the Git status window with `:Gitstatus`. For quick access, set up a mapping
 ``` lua
 vim.keymap.set('n', '<leader>s', vim.cmd.Gitstatus)
 ```
+
+While inside the Git status window:  
+- `s` – Stage/unstage the file on the current line
+- `a` – Stage all changes
+- `c` – Open commit prompt
+- `<CR>` (`Enter`) - Open file on the current line
+- `q` – Close window

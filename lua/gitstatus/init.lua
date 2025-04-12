@@ -25,28 +25,14 @@ local function warn_msg(msg)
   vim.api.nvim_echo({ { msg, "WarningMsg" } }, false, {})
 end
 
----@return integer
-local function default_cursor_row()
-  local first_file_index = Line.next_file_index(buf_lines, 0)
-  if first_file_index == nil then
-    return 1
-  end
-  return first_file_index
-end
-
 ---@param cursor_file File?
 ---@return integer
 local function get_new_cursor_row(cursor_file)
-  local default = default_cursor_row()
+  local default = Line.next_file_index(buf_lines, 0) or 1
   if cursor_file == nil then
     return default
   end
-
-  local cursor_file_index = Line.line_index_of_file(buf_lines, cursor_file)
-  if cursor_file_index == nil then
-    return default
-  end
-  return cursor_file_index
+  return Line.line_index_of_file(buf_lines, cursor_file) or default
 end
 
 ---@param buf integer
@@ -161,13 +147,8 @@ local function go_next_file()
   local col = cursor[2]
 
   local new_row = Line.next_file_index(buf_lines, row)
-  if new_row == nil then
-    if row < #buf_lines then
-      new_row = row + 1
-    else
-      new_row = row
-    end
-  end
+      or row < #buf_lines and row + 1
+      or row
   vim.api.nvim_win_set_cursor(0, {new_row, col})
 end
 
@@ -177,13 +158,8 @@ local function go_prev_file()
   local col = cursor[2]
 
   local new_row = Line.prev_file_index(buf_lines, row)
-  if new_row == nil then
-    if row > 1 then
-      new_row = row - 1
-    else
-      new_row = row
-    end
-  end
+      or row > 1 and row - 1
+      or row
   vim.api.nvim_win_set_cursor(0, {new_row, col})
 end
 
@@ -244,13 +220,10 @@ function M.open_status_win()
     if not success then return end
 
     local cursor_file_index = Line.next_file_index(buf_lines, row)
-    if cursor_file_index == nil then
-      cursor_file_index = Line.prev_file_index(buf_lines, row)
-    end
-    local cursor_file = nil
-    if cursor_file_index ~= nil then
-      cursor_file = buf_lines[cursor_file_index].file
-    end
+        or Line.prev_file_index(buf_lines, row)
+    local cursor_file =
+        cursor_file_index ~= nil and buf_lines[cursor_file_index].file
+        or nil
     refresh_buffer(buf, namespace, cursor_file)
   end
   vim.keymap.set('n', 's', toggle_stage_file, {

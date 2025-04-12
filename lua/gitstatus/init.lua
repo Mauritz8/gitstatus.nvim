@@ -148,7 +148,9 @@ local function go_next_file()
   local row = cursor[1]
   local col = cursor[2]
 
-  local new_row = Line.next_file_index(buf_lines, row)
+  local motion_count = vim.api.nvim_get_vvar('count')
+  local new_row = motion_count > 0 and row + motion_count
+    or Line.next_file_index(buf_lines, row)
     or row < #buf_lines and row + 1
     or row
   vim.api.nvim_win_set_cursor(0, { new_row, col })
@@ -159,7 +161,9 @@ local function go_prev_file()
   local row = cursor[1]
   local col = cursor[2]
 
-  local new_row = Line.prev_file_index(buf_lines, row)
+  local motion_count = vim.api.nvim_get_vvar('count')
+  local new_row = motion_count > 0 and row - motion_count
+    or Line.prev_file_index(buf_lines, row)
     or row > 1 and row - 1
     or row
   vim.api.nvim_win_set_cursor(0, { new_row, col })

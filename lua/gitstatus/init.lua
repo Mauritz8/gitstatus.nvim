@@ -196,7 +196,18 @@ local function open_file()
   vim.cmd('e ' .. name)
 end
 
--- TODO: Write some guidelines in the commit prompt buffer
+---@param lines string[]
+---@return string[]
+local function filter_out_lines_with_comment(lines)
+  local new_lines = {}
+  for _, line in ipairs(lines) do
+    if line:sub(1, 1) ~= '#' then
+      table.insert(new_lines, line)
+    end
+  end
+  return new_lines
+end
+
 local function open_commit_prompt()
   if Line.staged_files(buf_lines) == 0 then
     warn_msg('Unable to commit: no staged files')
@@ -206,7 +217,14 @@ local function open_commit_prompt()
   quit()
   local git_commit_file = '.git/COMMIT_EDITMSG'
   vim.cmd('new ' .. git_commit_file)
-  vim.api.nvim_buf_set_lines(0, 0, -1, true, {})
+
+  local help_lines = {
+    '',
+    '# Please enter the commit message for your changes. Lines starting',
+    "# with '#' will be ignored, and an empty message aborts the commit.",
+  }
+  vim.api.nvim_buf_set_lines(0, 0, -1, true, help_lines)
+
   vim.api.nvim_create_autocmd({ 'BufLeave' }, {
     pattern = { git_commit_file },
     once = true,
@@ -217,7 +235,8 @@ local function open_commit_prompt()
         echo_msg('Aborting commit: commit message not saved')
         return
       end
-      local msg = vim.api.nvim_buf_get_lines(ev.buf, 0, -1, true)
+      local lines = vim.api.nvim_buf_get_lines(ev.buf, 0, -1, true)
+      local msg = filter_out_lines_with_comment(lines)
       local success_message, err = git.commit(msg)
       if err ~= nil then
         err_msg(err)

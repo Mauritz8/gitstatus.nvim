@@ -13,9 +13,6 @@ local buf_lines = {}
 ---@type integer?
 local window = nil
 
-local parent_win_width = vim.api.nvim_win_get_width(0)
-local parent_win_height = vim.api.nvim_win_get_height(0)
-
 ---@param msg string
 local function echo_msg(msg)
   vim.api.nvim_echo({ { msg } }, false, {})
@@ -59,7 +56,15 @@ end
 ---@param buf integer
 ---@param namespace integer
 ---@param cursor_file File?
-local function refresh_buffer(buf, namespace, cursor_file)
+---@param parent_win_width number
+---@param parent_win_height number
+local function refresh_buffer(
+  buf,
+  namespace,
+  cursor_file,
+  parent_win_width,
+  parent_win_height
+)
   local col = vim.api.nvim_win_get_cursor(0)[2]
 
   local status_out, err = git.status()
@@ -260,6 +265,8 @@ function M.open_status_win()
   local buf = vim.api.nvim_create_buf(false, true)
   local default_width = 40
   local default_height = 10
+  local parent_win_width = vim.api.nvim_win_get_width(0)
+  local parent_win_height = vim.api.nvim_win_get_height(0)
   window = vim.api.nvim_open_win(buf, true, {
     relative = 'editor',
     width = default_width,
@@ -272,7 +279,7 @@ function M.open_status_win()
   vim.api.nvim_set_hl(namespace, 'not_staged', { fg = '#D73A49' })
   vim.api.nvim_win_set_hl_ns(window, namespace)
 
-  refresh_buffer(buf, namespace, nil)
+  refresh_buffer(buf, namespace, nil, parent_win_width, parent_win_height)
 
   vim.keymap.set('n', 'q', quit, {
     buffer = true,
@@ -292,7 +299,13 @@ function M.open_status_win()
     local cursor_file = cursor_file_index ~= nil
         and buf_lines[cursor_file_index].file
       or nil
-    refresh_buffer(buf, namespace, cursor_file)
+    refresh_buffer(
+      buf,
+      namespace,
+      cursor_file,
+      parent_win_width,
+      parent_win_height
+    )
   end
   vim.keymap.set('n', 's', toggle_stage_file, {
     buffer = true,
@@ -301,7 +314,7 @@ function M.open_status_win()
 
   local function stage_all()
     git.stage_all()
-    refresh_buffer(buf, namespace, nil)
+    refresh_buffer(buf, namespace, nil, parent_win_width, parent_win_height)
   end
   vim.keymap.set('n', 'a', stage_all, {
     buffer = true,

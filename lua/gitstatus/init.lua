@@ -104,12 +104,6 @@ local function refresh_buffer(buf, namespace, cursor_file)
     row = Window.row(parent_win_height, height),
     col = Window.column(parent_win_width, width),
   })
-
-  -- in order to essentially refresh the buffer
-  -- without it the buffer shows a blank line at the bottom sometimes
-  -- which is only fixed by moving the cursor up one row
-  vim.api.nvim_win_set_cursor(0, { 1, 0 })
-
   vim.api.nvim_win_set_cursor(0, { get_new_cursor_row(cursor_file), col })
 end
 

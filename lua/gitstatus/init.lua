@@ -257,8 +257,8 @@ function M.open_status_win()
   end
 
   local buf = vim.api.nvim_create_buf(false, true)
-  local default_width = 1
-  local default_height = 1
+  local default_width = 40
+  local default_height = 10
   window = vim.api.nvim_open_win(buf, true, {
     relative = 'editor',
     width = default_width,

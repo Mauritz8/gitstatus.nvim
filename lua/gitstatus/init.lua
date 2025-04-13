@@ -69,7 +69,7 @@ local function refresh_buffer(
   local status_out, err = git.status()
   if err ~= nil then
     err_msg(err)
-    vim.api.nvim_win_close(0, false)
+    vim.cmd('q')
     return
   end
   local files = parse.git_status(status_out)
@@ -77,13 +77,13 @@ local function refresh_buffer(
   local branch_out, err2 = git.branch()
   if err2 ~= nil then
     err_msg(err2)
-    vim.api.nvim_win_close(0, false)
+    vim.cmd('q')
     return
   end
   local branch = parse.git_branch(branch_out)
   if branch == nil then
     err_msg('Unable to find current branch')
-    vim.api.nvim_win_close(0, false)
+    vim.cmd('q')
     return
   end
 
@@ -236,7 +236,7 @@ local function open_file()
     name = new_name
   end
 
-  vim.api.nvim_win_close(0, false)
+  vim.cmd('q')
   vim.cmd('e ' .. name)
 end
 
@@ -258,7 +258,7 @@ local function open_commit_prompt()
     return
   end
 
-  vim.api.nvim_win_close(0, false)
+  vim.cmd('q')
   local git_commit_file = '.git/COMMIT_EDITMSG'
   vim.cmd('new ' .. git_commit_file)
 
@@ -319,7 +319,7 @@ local function open_help_window(parent_win_width, parent_win_height)
   })
 
   vim.keymap.set('n', 'q', function()
-    vim.api.nvim_win_close(0, false)
+    vim.cmd('q')
   end, {
     buffer = true,
     desc = 'Quit',
@@ -333,6 +333,14 @@ function M.open_status_win()
   end
 
   local buf = vim.api.nvim_create_buf(false, true)
+  vim.api.nvim_create_autocmd({ 'QuitPre' }, {
+    buffer = buf,
+    once = true,
+    callback = function()
+      window = nil
+    end,
+  })
+
   local default_width = 40
   local default_height = 10
   local parent_win_width = vim.api.nvim_win_get_width(0)
@@ -354,7 +362,7 @@ function M.open_status_win()
   refresh_buffer(buf, namespace, nil, parent_win_width, parent_win_height)
 
   vim.keymap.set('n', 'q', function()
-    vim.api.nvim_win_close(0, false)
+    vim.cmd('q')
   end, {
     buffer = true,
     desc = 'Quit',
@@ -393,14 +401,6 @@ function M.open_status_win()
   end, {
     buffer = true,
     desc = 'Open help window',
-  })
-
-  vim.api.nvim_create_autocmd({ 'BufLeave' }, {
-    buffer = buf,
-    once = true,
-    callback = function()
-      window = nil
-    end,
   })
 end
 

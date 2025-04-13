@@ -46,6 +46,16 @@ local function quit()
   window = nil
 end
 
+---@param lines Line[]
+---@return string[]
+local function lines_strings(lines)
+  local strings = {}
+  for _, line in ipairs(lines) do
+    table.insert(strings, line.str)
+  end
+  return strings
+end
+
 ---@param buf integer
 ---@param namespace integer
 ---@param cursor_file File?
@@ -75,16 +85,13 @@ local function refresh_buffer(buf, namespace, cursor_file)
 
   buf_lines = out_formatter.format_out_lines(branch, files)
   vim.api.nvim_set_option_value('modifiable', true, { buf = buf })
-  vim.api.nvim_buf_set_lines(buf, 0, -1, true, {})
+  vim.api.nvim_buf_set_lines(buf, 0, -1, true, lines_strings(buf_lines))
   for i, line in ipairs(buf_lines) do
-    local line_nr = i - 1
-    vim.api.nvim_buf_set_lines(buf, line_nr, line_nr, true, { line.str })
-    vim.api.nvim_buf_set_extmark(buf, namespace, line_nr, 0, {
+    vim.api.nvim_buf_set_extmark(buf, namespace, i - 1, 0, {
       end_col = line.str:len(),
       hl_group = line.highlight_group,
     })
   end
-  vim.api.nvim_buf_set_lines(buf, -2, -1, true, {})
   vim.api.nvim_set_option_value('modifiable', false, { buf = buf })
 
   local numberwidth = vim.api.nvim_get_option_value('numberwidth', {})

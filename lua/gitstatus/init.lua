@@ -295,19 +295,111 @@ end
 ---@param parent_win_width number
 ---@param parent_win_height number
 local function open_help_window(parent_win_width, parent_win_height)
-  local buf = vim.api.nvim_create_buf(true, true)
   local lines = {
-    's - Stage/unstage the file on the current line',
-    'a - Stage all changes',
-    'c - Open commit prompt',
-    '<CR> (Enter) - Open file on the current line',
-    'q - Close window',
+    {
+      parts = {
+        {
+          str = 's',
+          hl_group = 'Label',
+        },
+        {
+          str = ' - ',
+          hl_group = '',
+        },
+        {
+          str = 'Stage/unstage the file on the current line',
+          hl_group = 'Function',
+        },
+      },
+      file = nil,
+    },
+    {
+      parts = {
+        {
+          str = 'a',
+          hl_group = 'Label',
+        },
+        {
+          str = ' - ',
+          hl_group = '',
+        },
+        {
+          str = 'Stage all changes',
+          hl_group = 'Function',
+        },
+      },
+      file = nil,
+    },
+    {
+      parts = {
+        {
+          str = 'c',
+          hl_group = 'Label',
+        },
+        {
+          str = ' - ',
+          hl_group = '',
+        },
+        {
+          str = 'Open commit prompt',
+          hl_group = 'Function',
+        },
+      },
+      file = nil,
+    },
+    {
+      parts = {
+        {
+          str = '<CR> (Enter)',
+          hl_group = 'Label',
+        },
+        {
+          str = ' - ',
+          hl_group = '',
+        },
+        {
+          str = 'Open file on the current line',
+          hl_group = 'Function',
+        },
+      },
+      file = nil,
+    },
+    {
+      parts = {
+        {
+          str = 'q',
+          hl_group = 'Label',
+        },
+        {
+          str = ' - ',
+          hl_group = '',
+        },
+        {
+          str = 'Close window',
+          hl_group = 'Function',
+        },
+      },
+      file = nil,
+    },
   }
-  vim.api.nvim_buf_set_lines(buf, 0, -1, true, lines)
+  local lines_strings = get_lines_strings(lines)
+  local buf = vim.api.nvim_create_buf(true, true)
+  vim.api.nvim_buf_set_lines(buf, 0, -1, true, lines_strings)
+  local namespace = vim.api.nvim_create_namespace('')
+  for i, line in ipairs(lines) do
+    local pos = 0
+    for _, part in ipairs(line.parts) do
+      vim.api.nvim_buf_set_extmark(buf, namespace, i - 1, pos, {
+        end_col = pos + part.str:len(),
+        hl_group = part.hl_group,
+      })
+      pos = pos + part.str:len()
+    end
+  end
 
   local numberwidth = vim.api.nvim_get_option_value('numberwidth', {})
-  local width = Window.width(lines, numberwidth, parent_win_width)
-  local height = Window.height(lines, parent_win_height)
+  local width = Window.width(lines_strings, numberwidth, parent_win_width)
+  local height = Window.height(lines_strings, parent_win_height)
   vim.api.nvim_open_win(buf, true, {
     relative = 'editor',
     width = width,

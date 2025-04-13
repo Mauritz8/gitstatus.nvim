@@ -158,6 +158,37 @@ local function toggle_stage_line(line)
   return true
 end
 
+---@param buf integer
+---@param namespace integer
+---@param parent_win_width number
+---@param parent_win_height number
+local function toggle_stage_file(
+  buf,
+  namespace,
+  parent_win_width,
+  parent_win_height
+)
+  local row = vim.api.nvim_win_get_cursor(0)[1]
+  local line = buf_lines[row]
+  local success = toggle_stage_line(line)
+  if not success then
+    return
+  end
+
+  local cursor_file_index = Line.next_file_index(buf_lines, row)
+    or Line.prev_file_index(buf_lines, row)
+  local cursor_file = cursor_file_index ~= nil
+      and buf_lines[cursor_file_index].file
+    or nil
+  refresh_buffer(
+    buf,
+    namespace,
+    cursor_file,
+    parent_win_width,
+    parent_win_height
+  )
+end
+
 local function go_next_file()
   local cursor = vim.api.nvim_win_get_cursor(0)
   local row = cursor[1]
@@ -322,38 +353,16 @@ function M.open_status_win()
     buffer = true,
     desc = 'Quit',
   })
-
-  local function toggle_stage_file()
-    local row = vim.api.nvim_win_get_cursor(0)[1]
-    local line = buf_lines[row]
-    local success = toggle_stage_line(line)
-    if not success then
-      return
-    end
-
-    local cursor_file_index = Line.next_file_index(buf_lines, row)
-      or Line.prev_file_index(buf_lines, row)
-    local cursor_file = cursor_file_index ~= nil
-        and buf_lines[cursor_file_index].file
-      or nil
-    refresh_buffer(
-      buf,
-      namespace,
-      cursor_file,
-      parent_win_width,
-      parent_win_height
-    )
-  end
-  vim.keymap.set('n', 's', toggle_stage_file, {
+  vim.keymap.set('n', 's', function()
+    toggle_stage_file(buf, namespace, parent_win_width, parent_win_height)
+  end, {
     buffer = true,
     desc = 'Stage/unstage file',
   })
-
-  local function stage_all()
+  vim.keymap.set('n', 'a', function()
     git.stage_all()
     refresh_buffer(buf, namespace, nil, parent_win_width, parent_win_height)
-  end
-  vim.keymap.set('n', 'a', stage_all, {
+  end, {
     buffer = true,
     desc = 'Stage all changes',
   })

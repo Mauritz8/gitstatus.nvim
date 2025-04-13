@@ -269,7 +269,7 @@ local function open_commit_prompt()
   }
   vim.api.nvim_buf_set_lines(0, 0, -1, true, help_lines)
 
-  vim.api.nvim_create_autocmd({ 'BufLeave' }, {
+  vim.api.nvim_create_autocmd({ 'QuitPre' }, {
     pattern = { git_commit_file },
     once = true,
     callback = function(ev)

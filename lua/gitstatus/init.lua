@@ -277,6 +277,7 @@ local function open_commit_prompt()
       if err ~= nil then
         err_msg(err)
       else
+        echo_msg('Commit successful!')
         echo_msg(success_message)
       end
     end,

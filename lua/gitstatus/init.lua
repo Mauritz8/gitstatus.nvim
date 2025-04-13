@@ -38,11 +38,6 @@ local function get_new_cursor_row(cursor_file)
   return Line.line_index_of_file(buf_lines, cursor_file) or default
 end
 
-local function quit()
-  vim.api.nvim_win_close(0, false)
-  window = nil
-end
-
 ---@param lines Line[]
 ---@return string[]
 local function get_lines_strings(lines)
@@ -70,7 +65,7 @@ local function refresh_buffer(
   local status_out, err = git.status()
   if err ~= nil then
     err_msg(err)
-    quit()
+    vim.api.nvim_win_close(0, false)
     return
   end
   local files = parse.git_status(status_out)
@@ -78,13 +73,13 @@ local function refresh_buffer(
   local branch_out, err2 = git.branch()
   if err2 ~= nil then
     err_msg(err2)
-    quit()
+    vim.api.nvim_win_close(0, false)
     return
   end
   local branch = parse.git_branch(branch_out)
   if branch == nil then
     err_msg('Unable to find current branch')
-    quit()
+    vim.api.nvim_win_close(0, false)
     return
   end
 
@@ -233,7 +228,7 @@ local function open_file()
     name = new_name
   end
 
-  quit()
+  vim.api.nvim_win_close(0, false)
   vim.cmd('e ' .. name)
 end
 
@@ -255,7 +250,7 @@ local function open_commit_prompt()
     return
   end
 
-  quit()
+  vim.api.nvim_win_close(0, false)
   local git_commit_file = '.git/COMMIT_EDITMSG'
   vim.cmd('new ' .. git_commit_file)
 
@@ -349,7 +344,9 @@ function M.open_status_win()
 
   refresh_buffer(buf, namespace, nil, parent_win_width, parent_win_height)
 
-  vim.keymap.set('n', 'q', quit, {
+  vim.keymap.set('n', 'q', function()
+    vim.api.nvim_win_close(0, false)
+  end, {
     buffer = true,
     desc = 'Quit',
   })
@@ -387,6 +384,14 @@ function M.open_status_win()
   end, {
     buffer = true,
     desc = 'Open help window',
+  })
+
+  vim.api.nvim_create_autocmd({ 'BufLeave' }, {
+    buffer = buf,
+    once = true,
+    callback = function()
+      window = nil
+    end,
   })
 end
 

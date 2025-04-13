@@ -2,9 +2,12 @@ local File = require('gitstatus.file')
 
 local M = {}
 
----@class Line
+---@class LinePart
 ---@field str string
----@field highlight_group string?
+---@field hl_group string?
+
+---@class Line
+---@field parts LinePart[]
 ---@field file File?
 
 ---@param lines Line[]

@@ -44,23 +44,49 @@ function M.format_out_lines(branch, files)
   local lines = {}
 
   table.insert(lines, {
-    str = 'Branch: ' .. branch,
-    highlight_group = nil,
+    parts = {
+      {
+        str = 'Branch: ',
+        hl_group = 'Label',
+      },
+      {
+        str = branch,
+        hl_group = 'Function',
+      },
+    },
     file = nil,
   })
   table.insert(lines, {
-    str = 'Help: ?',
-    highlight_group = nil,
+    parts = {
+      {
+        str = 'Help: ',
+        hl_group = 'Label',
+      },
+      {
+        str = '?',
+        hl_group = 'Function',
+      },
+    },
     file = nil,
   })
 
   if #files == 0 then
-    if #lines > 0 then
-      table.insert(lines, { str = '', highlight_group = nil, file = nil })
-    end
     table.insert(lines, {
-      str = 'nothing to commit, working tree clean',
-      highlight_group = nil,
+      parts = {
+        {
+          str = '',
+          hl_group = nil,
+        },
+      },
+      file = nil,
+    })
+    table.insert(lines, {
+      parts = {
+        {
+          str = 'nothing to commit, working tree clean',
+          hl_group = nil,
+        },
+      },
       file = nil,
     })
   end
@@ -72,15 +98,33 @@ function M.format_out_lines(branch, files)
   end
   for i, files_of_type in ipairs(file_table) do
     if #files_of_type > 0 then
-      if #lines > 0 then
-        table.insert(lines, { str = '', highlight_group = nil, file = nil })
-      end
-      table.insert(lines, { str = name(i), highlight_group = nil, file = nil })
+      table.insert(lines, {
+        parts = {
+          {
+            str = '',
+            hl_group = nil,
+          },
+        },
+        file = nil,
+      })
+      table.insert(lines, {
+        parts = {
+          {
+            str = name(i),
+            hl_group = nil,
+          },
+        },
+        file = nil,
+      })
     end
     for _, file in ipairs(files_of_type) do
       local line = {
-        str = prefix(file.type) .. file.name,
-        highlight_group = get_highlight_group(file.state),
+        parts = {
+          {
+            str = prefix(file.type) .. file.name,
+            hl_group = get_highlight_group(file.state),
+          },
+        },
         file = file,
       }
       table.insert(lines, line)

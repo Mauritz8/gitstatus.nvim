@@ -9,23 +9,47 @@ describe('out_formatter.lua', function()
       local lines = out_formatter.format_out_lines(branch, files)
       local expected = {
         {
-          str = 'Branch: main',
-          highlight_group = nil,
+          parts = {
+            {
+              str = 'Branch: ',
+              hl_group = 'Label',
+            },
+            {
+              str = 'main',
+              hl_group = 'Function',
+            },
+          },
           file = nil,
         },
         {
-          str = 'Help: ?',
-          highlight_group = nil,
+          parts = {
+            {
+              str = 'Help: ',
+              hl_group = 'Label',
+            },
+            {
+              str = '?',
+              hl_group = 'Function',
+            },
+          },
           file = nil,
         },
         {
-          str = '',
-          highlight_group = nil,
+          parts = {
+            {
+              str = '',
+              hl_group = nil,
+            },
+          },
           file = nil,
         },
         {
-          str = 'nothing to commit, working tree clean',
-          highlight_group = nil,
+          parts = {
+            {
+              str = 'nothing to commit, working tree clean',
+              hl_group = nil,
+            },
+          },
           file = nil,
         },
       }
@@ -58,63 +82,119 @@ describe('out_formatter.lua', function()
       local lines = out_formatter.format_out_lines(branch, files)
       local expected = {
         {
-          str = 'Branch: main',
-          highlight_group = nil,
+          parts = {
+            {
+              str = 'Branch: ',
+              hl_group = 'Label',
+            },
+            {
+              str = 'main',
+              hl_group = 'Function',
+            },
+          },
           file = nil,
         },
         {
-          str = 'Help: ?',
-          highlight_group = nil,
+          parts = {
+            {
+              str = 'Help: ',
+              hl_group = 'Label',
+            },
+            {
+              str = '?',
+              hl_group = 'Function',
+            },
+          },
           file = nil,
         },
         {
-          str = '',
-          highlight_group = nil,
+          parts = {
+            {
+              str = '',
+              hl_group = nil,
+            },
+          },
           file = nil,
         },
         {
-          str = 'Staged:',
-          highlight_group = nil,
+          parts = {
+            {
+              str = 'Staged:',
+              hl_group = nil,
+            },
+          },
           file = nil,
         },
         {
-          str = 'modified: file1.txt',
-          highlight_group = 'staged',
+          parts = {
+            {
+              str = 'modified: file1.txt',
+              hl_group = 'staged',
+            },
+          },
           file = files[1],
         },
         {
-          str = 'new file: file4.txt',
-          highlight_group = 'staged',
+          parts = {
+            {
+              str = 'new file: file4.txt',
+              hl_group = 'staged',
+            },
+          },
           file = files[4],
         },
         {
-          str = '',
-          highlight_group = nil,
+          parts = {
+            {
+              str = '',
+              hl_group = nil,
+            },
+          },
           file = nil,
         },
         {
-          str = 'Not staged:',
-          highlight_group = nil,
+          parts = {
+            {
+              str = 'Not staged:',
+              hl_group = nil,
+            },
+          },
           file = nil,
         },
         {
-          str = 'deleted: file2.txt',
-          highlight_group = 'not_staged',
+          parts = {
+            {
+              str = 'deleted: file2.txt',
+              hl_group = 'not_staged',
+            },
+          },
           file = files[2],
         },
         {
-          str = '',
-          highlight_group = nil,
+          parts = {
+            {
+              str = '',
+              hl_group = nil,
+            },
+          },
           file = nil,
         },
         {
-          str = 'Untracked:',
-          highlight_group = nil,
+          parts = {
+            {
+              str = 'Untracked:',
+              hl_group = nil,
+            },
+          },
           file = nil,
         },
         {
-          str = 'file3.txt',
-          highlight_group = 'not_staged',
+          parts = {
+            {
+              str = 'file3.txt',
+              hl_group = 'not_staged',
+            },
+          },
           file = files[3],
         },
       }

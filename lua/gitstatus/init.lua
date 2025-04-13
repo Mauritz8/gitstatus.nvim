@@ -43,7 +43,11 @@ end
 local function get_lines_strings(lines)
   local strings = {}
   for _, line in ipairs(lines) do
-    table.insert(strings, line.str)
+    local str = ''
+    for _, part in ipairs(line.parts) do
+      str = str .. part.str
+    end
+    table.insert(strings, str)
   end
   return strings
 end
@@ -88,10 +92,14 @@ local function refresh_buffer(
   local lines_strings = get_lines_strings(buf_lines)
   vim.api.nvim_buf_set_lines(buf, 0, -1, true, lines_strings)
   for i, line in ipairs(buf_lines) do
-    vim.api.nvim_buf_set_extmark(buf, namespace, i - 1, 0, {
-      end_col = line.str:len(),
-      hl_group = line.highlight_group,
-    })
+    local pos = 0
+    for _, part in ipairs(line.parts) do
+      vim.api.nvim_buf_set_extmark(buf, namespace, i - 1, pos, {
+        end_col = pos + part.str:len(),
+        hl_group = part.hl_group,
+      })
+      pos = pos + part.str:len()
+    end
   end
   vim.api.nvim_set_option_value('modifiable', false, { buf = buf })
 

@@ -14,22 +14,17 @@ describe('out_formatter.lua', function()
           file = nil,
         },
         {
+          str = 'Help: ?',
+          highlight_group = nil,
+          file = nil,
+        },
+        {
           str = '',
           highlight_group = nil,
           file = nil,
         },
         {
           str = 'nothing to commit, working tree clean',
-          highlight_group = nil,
-          file = nil,
-        },
-        {
-          str = '',
-          highlight_group = nil,
-          file = nil,
-        },
-        {
-          str = 's = stage/unstage, a = stage all, c = commit, Enter = open file, q = quit',
           highlight_group = nil,
           file = nil,
         },
@@ -64,6 +59,11 @@ describe('out_formatter.lua', function()
       local expected = {
         {
           str = 'Branch: main',
+          highlight_group = nil,
+          file = nil,
+        },
+        {
+          str = 'Help: ?',
           highlight_group = nil,
           file = nil,
         },
@@ -116,16 +116,6 @@ describe('out_formatter.lua', function()
           str = 'file3.txt',
           highlight_group = 'not_staged',
           file = files[3],
-        },
-        {
-          str = '',
-          highlight_group = nil,
-          file = nil,
-        },
-        {
-          str = 's = stage/unstage, a = stage all, c = commit, Enter = open file, q = quit',
-          highlight_group = nil,
-          file = nil,
         },
       }
       assert.are_same(expected, lines)

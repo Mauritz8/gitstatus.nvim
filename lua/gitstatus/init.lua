@@ -45,7 +45,7 @@ end
 
 ---@param lines Line[]
 ---@return string[]
-local function lines_strings(lines)
+local function get_lines_strings(lines)
   local strings = {}
   for _, line in ipairs(lines) do
     table.insert(strings, line.str)
@@ -90,7 +90,8 @@ local function refresh_buffer(
 
   buf_lines = out_formatter.format_out_lines(branch, files)
   vim.api.nvim_set_option_value('modifiable', true, { buf = buf })
-  vim.api.nvim_buf_set_lines(buf, 0, -1, true, lines_strings(buf_lines))
+  local lines_strings = get_lines_strings(buf_lines)
+  vim.api.nvim_buf_set_lines(buf, 0, -1, true, lines_strings)
   for i, line in ipairs(buf_lines) do
     vim.api.nvim_buf_set_extmark(buf, namespace, i - 1, 0, {
       end_col = line.str:len(),
@@ -100,8 +101,8 @@ local function refresh_buffer(
   vim.api.nvim_set_option_value('modifiable', false, { buf = buf })
 
   local numberwidth = vim.api.nvim_get_option_value('numberwidth', {})
-  local width = Window.width(buf_lines, numberwidth, parent_win_width)
-  local height = Window.height(buf_lines, parent_win_height)
+  local width = Window.width(lines_strings, numberwidth, parent_win_width)
+  local height = Window.height(lines_strings, parent_win_height)
   vim.api.nvim_win_set_config(0, {
     relative = 'editor',
     width = width,
@@ -256,6 +257,40 @@ local function open_commit_prompt()
   })
 end
 
+---@param parent_win_width number
+---@param parent_win_height number
+local function open_help_window(parent_win_width, parent_win_height)
+  local buf = vim.api.nvim_create_buf(true, true)
+  local lines = {
+    's - Stage/unstage the file on the current line',
+    'a - Stage all changes',
+    'c - Open commit prompt',
+    '<CR> (Enter) - Open file on the current line',
+    'q - Close window',
+  }
+  vim.api.nvim_buf_set_lines(buf, 0, -1, true, lines)
+
+  local numberwidth = vim.api.nvim_get_option_value('numberwidth', {})
+  local width = Window.width(lines, numberwidth, parent_win_width)
+  local height = Window.height(lines, parent_win_height)
+  vim.api.nvim_open_win(buf, true, {
+    relative = 'editor',
+    width = width,
+    height = height,
+    row = Window.row(parent_win_height, height),
+    col = Window.column(parent_win_width, width),
+    title = 'Keymappings',
+    border = { '╔', '═', '╗', '║', '╝', '═', '╚', '║' },
+  })
+
+  vim.keymap.set('n', 'q', function()
+    vim.api.nvim_win_close(0, false)
+  end, {
+    buffer = true,
+    desc = 'Quit',
+  })
+end
+
 function M.open_status_win()
   if window ~= nil then
     vim.api.nvim_set_current_win(window)
@@ -273,6 +308,8 @@ function M.open_status_win()
     height = default_height,
     row = Window.row(parent_win_height, default_height),
     col = Window.column(parent_win_width, default_width),
+    title = 'Git status',
+    border = { '╔', '═', '╗', '║', '╝', '═', '╚', '║' },
   })
   local namespace = vim.api.nvim_create_namespace('')
   vim.api.nvim_set_hl(namespace, 'staged', { fg = '#26A641' })
@@ -335,6 +372,12 @@ function M.open_status_win()
   vim.keymap.set('n', 'c', open_commit_prompt, {
     buffer = true,
     desc = 'Open commit prompt',
+  })
+  vim.keymap.set('n', '?', function()
+    open_help_window(parent_win_width, parent_win_height)
+  end, {
+    buffer = true,
+    desc = 'Open help window',
   })
 end
 

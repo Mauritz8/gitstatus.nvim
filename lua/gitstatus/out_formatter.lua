@@ -40,10 +40,16 @@ end
 ---@param files File[]
 ---@return Line[]
 function M.format_out_lines(branch, files)
+  ---@type Line[]
   local lines = {}
 
   table.insert(lines, {
     str = 'Branch: ' .. branch,
+    highlight_group = nil,
+    file = nil,
+  })
+  table.insert(lines, {
+    str = 'Help: ?',
     highlight_group = nil,
     file = nil,
   })
@@ -80,12 +86,6 @@ function M.format_out_lines(branch, files)
       table.insert(lines, line)
     end
   end
-  table.insert(lines, { str = '', highlight_group = nil, file = nil })
-  table.insert(lines, {
-    str = 's = stage/unstage, a = stage all, c = commit, Enter = open file, q = quit',
-    highlight_group = nil,
-    file = nil,
-  })
   return lines
 end
 

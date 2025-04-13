@@ -1,11 +1,11 @@
 local M = {}
 
----@param lines Line[]
+---@param lines string[]
 ---@return integer
 local function max_line_length(lines)
   local max_length = 0
   for _, line in ipairs(lines) do
-    local line_len = line.str:len()
+    local line_len = line:len()
     if line_len > max_length then
       max_length = line_len
     end
@@ -13,29 +13,22 @@ local function max_line_length(lines)
   return max_length
 end
 
----@param lines Line[]
+---@param lines string[]
+---@param numberwidth integer
 ---@param parent_win_width number
 ---@return number
 function M.width(lines, numberwidth, parent_win_width)
   local margin = 5
   local width = max_line_length(lines) + numberwidth + margin
-  if width > parent_win_width then
-    return parent_win_width
-  else
-    return width
-  end
+  return width < parent_win_width and width or parent_win_width
 end
 
----@param lines Line[]
+---@param lines string[]
 ---@param parent_win_height number
 ---@return number
 function M.height(lines, parent_win_height)
   local len = #lines
-  if len > parent_win_height then
-    return parent_win_height
-  else
-    return len
-  end
+  return len < parent_win_height and len or parent_win_height
 end
 
 ---@param parent_win_height number

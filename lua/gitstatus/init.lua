@@ -41,6 +41,11 @@ local function get_new_cursor_row(cursor_file)
   return Line.line_index_of_file(buf_lines, cursor_file) or default
 end
 
+local function quit()
+  vim.api.nvim_win_close(0, false)
+  window = nil
+end
+
 ---@param buf integer
 ---@param namespace integer
 ---@param cursor_file File?
@@ -50,6 +55,7 @@ local function refresh_buffer(buf, namespace, cursor_file)
   local status_out, err = git.status()
   if err ~= nil then
     err_msg(err)
+    quit()
     return
   end
   local files = parse.git_status(status_out)
@@ -57,11 +63,13 @@ local function refresh_buffer(buf, namespace, cursor_file)
   local branch_out, err2 = git.branch()
   if err2 ~= nil then
     err_msg(err2)
+    quit()
     return
   end
   local branch = parse.git_branch(branch_out)
   if branch == nil then
     err_msg('Unable to find current branch')
+    quit()
     return
   end
 
@@ -96,11 +104,6 @@ local function refresh_buffer(buf, namespace, cursor_file)
   vim.api.nvim_win_set_cursor(0, { 1, 0 })
 
   vim.api.nvim_win_set_cursor(0, { get_new_cursor_row(cursor_file), col })
-end
-
-local function quit()
-  vim.api.nvim_win_close(0, false)
-  window = nil
 end
 
 -- TODO: refactor this function

@@ -268,6 +268,7 @@ local function open_commit_prompt()
     "# with '#' will be ignored, and an empty message aborts the commit.",
   }
   vim.api.nvim_buf_set_lines(0, 0, -1, true, help_lines)
+  vim.api.nvim_win_set_cursor(0, { 1, 0 })
 
   vim.api.nvim_create_autocmd({ 'QuitPre' }, {
     pattern = { git_commit_file },

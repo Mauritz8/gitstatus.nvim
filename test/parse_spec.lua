@@ -3,20 +3,15 @@ local parse = require('gitstatus.parse')
 
 describe('parse.lua', function()
   describe('git_branch', function()
-    it('only main exists', function()
-      local input = '* main'
+    it('with newline', function()
+      local input = 'main\n'
       local branch = parse.git_branch(input)
       assert.equal('main', branch)
     end)
-    it('two branches on main', function()
-      local input = '* main\ndev'
+    it('without newline', function()
+      local input = 'main'
       local branch = parse.git_branch(input)
       assert.equal('main', branch)
-    end)
-    it('two branches not on main', function()
-      local input = 'main\n* dev'
-      local branch = parse.git_branch(input)
-      assert.equal('dev', branch)
     end)
   end)
   describe('git_status', function()

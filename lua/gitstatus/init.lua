@@ -414,7 +414,7 @@ local function open_help_window(parent_win_width, parent_win_height)
   vim.keymap.set('n', 'q', function()
     vim.cmd('q')
   end, {
-    buffer = true,
+    buffer = buf,
     desc = 'Quit',
   })
 end
@@ -425,7 +425,55 @@ function M.open_status_win()
     return
   end
 
-  local buf = vim.api.nvim_create_buf(false, true)
+  local buf = vim.api.nvim_create_buf(true, true)
+  local namespace = vim.api.nvim_create_namespace('')
+  vim.api.nvim_set_hl(namespace, 'staged', { fg = '#26A641' })
+  vim.api.nvim_set_hl(namespace, 'not_staged', { fg = '#D73A49' })
+  local parent_win_width = vim.api.nvim_win_get_width(0)
+  local parent_win_height = vim.api.nvim_win_get_height(0)
+
+  vim.keymap.set('n', 'q', function()
+    vim.cmd('q')
+  end, {
+    buffer = buf,
+    desc = 'Quit',
+  })
+  vim.keymap.set('n', 's', function()
+    toggle_stage_file(buf, namespace, parent_win_width, parent_win_height)
+  end, {
+    buffer = buf,
+    desc = 'Stage/unstage file',
+  })
+  vim.keymap.set('n', 'a', function()
+    git.stage_all()
+    refresh_buffer(buf, namespace, nil, parent_win_width, parent_win_height)
+  end, {
+    buffer = buf,
+    desc = 'Stage all changes',
+  })
+  vim.keymap.set('n', 'j', go_next_file, {
+    buffer = buf,
+    desc = 'Go to next file',
+  })
+  vim.keymap.set('n', 'k', go_prev_file, {
+    buffer = buf,
+    desc = 'Go to previous file',
+  })
+  vim.keymap.set('n', '<CR>', open_file, {
+    buffer = buf,
+    desc = 'Open file',
+  })
+  vim.keymap.set('n', 'c', open_commit_prompt, {
+    buffer = buf,
+    desc = 'Open commit prompt',
+  })
+  vim.keymap.set('n', '?', function()
+    open_help_window(parent_win_width, parent_win_height)
+  end, {
+    buffer = buf,
+    desc = 'Open help window',
+  })
+
   vim.api.nvim_create_autocmd({ 'QuitPre' }, {
     buffer = buf,
     once = true,
@@ -436,8 +484,6 @@ function M.open_status_win()
 
   local default_width = 40
   local default_height = 10
-  local parent_win_width = vim.api.nvim_win_get_width(0)
-  local parent_win_height = vim.api.nvim_win_get_height(0)
   window = vim.api.nvim_open_win(buf, true, {
     relative = 'editor',
     width = default_width,
@@ -447,54 +493,8 @@ function M.open_status_win()
     title = 'Git status',
     border = { '╔', '═', '╗', '║', '╝', '═', '╚', '║' },
   })
-  local namespace = vim.api.nvim_create_namespace('')
-  vim.api.nvim_set_hl(namespace, 'staged', { fg = '#26A641' })
-  vim.api.nvim_set_hl(namespace, 'not_staged', { fg = '#D73A49' })
   vim.api.nvim_win_set_hl_ns(window, namespace)
-
   refresh_buffer(buf, namespace, nil, parent_win_width, parent_win_height)
-
-  vim.keymap.set('n', 'q', function()
-    vim.cmd('q')
-  end, {
-    buffer = true,
-    desc = 'Quit',
-  })
-  vim.keymap.set('n', 's', function()
-    toggle_stage_file(buf, namespace, parent_win_width, parent_win_height)
-  end, {
-    buffer = true,
-    desc = 'Stage/unstage file',
-  })
-  vim.keymap.set('n', 'a', function()
-    git.stage_all()
-    refresh_buffer(buf, namespace, nil, parent_win_width, parent_win_height)
-  end, {
-    buffer = true,
-    desc = 'Stage all changes',
-  })
-  vim.keymap.set('n', 'j', go_next_file, {
-    buffer = true,
-    desc = 'Go to next file',
-  })
-  vim.keymap.set('n', 'k', go_prev_file, {
-    buffer = true,
-    desc = 'Go to previous file',
-  })
-  vim.keymap.set('n', '<CR>', open_file, {
-    buffer = true,
-    desc = 'Open file',
-  })
-  vim.keymap.set('n', 'c', open_commit_prompt, {
-    buffer = true,
-    desc = 'Open commit prompt',
-  })
-  vim.keymap.set('n', '?', function()
-    open_help_window(parent_win_width, parent_win_height)
-  end, {
-    buffer = true,
-    desc = 'Open help window',
-  })
 end
 
 return M

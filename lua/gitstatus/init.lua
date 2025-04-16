@@ -81,11 +81,6 @@ local function refresh_buffer(
     return
   end
   local branch = parse.git_branch(branch_out)
-  if branch == nil then
-    err_msg('Unable to find current branch')
-    vim.cmd('q')
-    return
-  end
 
   buf_lines = out_formatter.format_out_lines(branch, files)
   vim.api.nvim_set_option_value('modifiable', true, { buf = buf })

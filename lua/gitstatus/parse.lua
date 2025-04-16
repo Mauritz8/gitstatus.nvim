@@ -78,15 +78,10 @@ function M.git_status(status_output)
 end
 
 ---@param branch_output string
----@return string?
+---@return string
 function M.git_branch(branch_output)
-  local lines = split(branch_output, '\n')
-  for _, line in ipairs(lines) do
-    if line:find('*', 1, true) then
-      return line:sub(3)
-    end
-  end
-  return nil
+  local branch, _ = branch_output:gsub('\n', '')
+  return branch
 end
 
 ---@param renamed_file_name string

@@ -11,7 +11,9 @@ end
 
 ---@return string, string?
 function M.branch()
-  local obj = vim.system({ 'git', 'branch' }, { text = true }):wait()
+  local obj = vim
+    .system({ 'git', 'branch', '--show-current' }, { text = true })
+    :wait()
   if obj.code ~= 0 then
     return '', 'Unable to get git branch: ' .. obj.stderr
   end

@@ -69,7 +69,7 @@ local function refresh_buffer(
   local status_out, err = git.status()
   if err ~= nil then
     err_msg(err)
-    vim.cmd('q')
+    vim.api.nvim_cmd({ cmd = 'q' }, {})
     return
   end
   local files = parse.git_status(status_out)
@@ -77,7 +77,7 @@ local function refresh_buffer(
   local branch_out, err2 = git.branch()
   if err2 ~= nil then
     err_msg(err2)
-    vim.cmd('q')
+    vim.api.nvim_cmd({ cmd = 'q' }, {})
     return
   end
   local branch = parse.git_branch(branch_out)
@@ -231,8 +231,8 @@ local function open_file()
     name = new_name
   end
 
-  vim.cmd('q')
-  vim.cmd('e ' .. name)
+  vim.api.nvim_cmd({ cmd = 'q' }, {})
+  vim.api.nvim_cmd({ cmd = 'e', args = { name } }, {})
 end
 
 ---@param lines string[]
@@ -253,9 +253,9 @@ local function open_commit_prompt()
     return
   end
 
-  vim.cmd('q')
+  vim.api.nvim_cmd({ cmd = 'q' }, {})
   local git_commit_file = '.git/COMMIT_EDITMSG'
-  vim.cmd('new ' .. git_commit_file)
+  vim.api.nvim_cmd({ cmd = 'new', args = { git_commit_file } }, {})
 
   local help_lines = {
     '',
@@ -407,7 +407,7 @@ local function open_help_window(parent_win_width, parent_win_height)
   })
 
   vim.keymap.set('n', 'q', function()
-    vim.cmd('q')
+    vim.api.nvim_cmd({ cmd = 'q' }, {})
   end, {
     buffer = buf,
     desc = 'Quit',
@@ -428,7 +428,7 @@ function M.open_status_win()
   local parent_win_height = vim.api.nvim_win_get_height(0)
 
   vim.keymap.set('n', 'q', function()
-    vim.cmd('q')
+    vim.api.nvim_cmd({ cmd = 'q' }, {})
   end, {
     buffer = buf,
     desc = 'Quit',

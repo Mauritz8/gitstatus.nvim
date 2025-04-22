@@ -232,6 +232,10 @@ local function open_file()
   end
 
   vim.api.nvim_cmd({ cmd = 'q' }, {})
+  -- TODO: Only open file if it's not already open
+  -- https://github.com/Mauritz8/gitstatus.nvim/issues/40
+  -- vim.print(vim.api.nvim_buf_get_name(0))
+  --  if name ~= current_buffer exec following command
   vim.api.nvim_cmd({ cmd = 'e', args = { name } }, {})
 end
 
@@ -253,16 +257,27 @@ local function open_commit_prompt()
     return
   end
 
+  local status_out, err = git.status()
+  if err ~= nil then
+    err_msg('Unable to commit: ' .. err)
+    return
+  end
+  local files = parse.git_status(status_out)
+
+  local branch_out, err2 = git.branch()
+  if err2 ~= nil then
+    err_msg('Unable to commit: ' .. err2)
+    return
+  end
+  local branch = parse.git_branch(branch_out)
+
+  local commit_msg = out_formatter.make_commit_init_msg(branch, files)
+
   vim.api.nvim_cmd({ cmd = 'q' }, {})
   local git_commit_file = '.git/COMMIT_EDITMSG'
   vim.api.nvim_cmd({ cmd = 'new', args = { git_commit_file } }, {})
 
-  local help_lines = {
-    '',
-    '# Please enter the commit message for your changes. Lines starting',
-    "# with '#' will be ignored, and an empty message aborts the commit.",
-  }
-  vim.api.nvim_buf_set_lines(0, 0, -1, true, help_lines)
+  vim.api.nvim_buf_set_lines(0, 0, -1, true, commit_msg)
   vim.api.nvim_win_set_cursor(0, { 1, 0 })
 
   vim.api.nvim_create_autocmd({ 'QuitPre' }, {
@@ -277,9 +292,9 @@ local function open_commit_prompt()
       end
       local lines = vim.api.nvim_buf_get_lines(ev.buf, 0, -1, true)
       local msg = filter_out_lines_with_comment(lines)
-      local success_message, err = git.commit(msg)
-      if err ~= nil then
-        err_msg(err)
+      local success_message, err3 = git.commit(msg)
+      if err3 ~= nil then
+        err_msg(err3)
       else
         echo_msg('Commit successful!')
         echo_msg(success_message)

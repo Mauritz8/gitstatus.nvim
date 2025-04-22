@@ -2,7 +2,9 @@ local M = {}
 
 ---@return string, string?
 function M.status()
-  local obj = vim.system({ 'git', 'status', '-s' }, { text = true }):wait()
+  local obj = vim
+    .system({ 'git', 'status', '--porcelain=v1' }, { text = true })
+    :wait()
   if obj.code ~= 0 then
     return '', 'Unable to get git status: ' .. obj.stderr
   end

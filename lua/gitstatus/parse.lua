@@ -29,6 +29,9 @@ end
 ---@return File[]
 local function line_to_files(line)
   local name = line:sub(4)
+  if name:sub(1, 1) == '"' and name:sub(-1, -1) == '"' then
+    name = name:sub(2, -2)
+  end
 
   if line:sub(1, 2) == '??' then
     return {

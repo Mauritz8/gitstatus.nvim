@@ -105,6 +105,18 @@ describe('parse.lua', function()
         }
         assert.are_same(expected, files)
       end)
+      it('untracked filename that contains spaces', function()
+        local input = '?? "a file with spaces.txt"'
+        local files = parse.git_status(input)
+        local expected = {
+          {
+            name = 'a file with spaces.txt',
+            state = file.FILE_STATE.untracked,
+            type = file.FILE_EDIT_TYPE.none,
+          },
+        }
+        assert.are_same(expected, files)
+      end)
     end)
   end)
   it('git_renamed_file', function()

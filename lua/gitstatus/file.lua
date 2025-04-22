@@ -13,7 +13,9 @@ M.FILE_EDIT_TYPE = {
   new = 1,
   deleted = 2,
   renamed = 3,
-  none = 4,
+  file_type_changed = 4,
+  copied = 5,
+  none = 6,
 }
 
 ---@class File

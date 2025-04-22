@@ -10,6 +10,8 @@ local function prefix(file_edit_type)
     or file_edit_type == File.FILE_EDIT_TYPE.new and 'new file: '
     or file_edit_type == File.FILE_EDIT_TYPE.deleted and 'deleted: '
     or file_edit_type == File.FILE_EDIT_TYPE.renamed and 'renamed: '
+    or file_edit_type == File.FILE_EDIT_TYPE.file_type_changed and 'typechange: '
+    or file_edit_type == File.FILE_EDIT_TYPE.copied and 'copied: '
     or ''
 end
 

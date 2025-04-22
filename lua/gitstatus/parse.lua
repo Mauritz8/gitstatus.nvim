@@ -20,6 +20,8 @@ local function str_to_file_type(str)
     or str == 'A' and File.FILE_EDIT_TYPE.new
     or str == 'D' and File.FILE_EDIT_TYPE.deleted
     or str == 'R' and File.FILE_EDIT_TYPE.renamed
+    or str == 'T' and File.FILE_EDIT_TYPE.file_type_changed
+    or str == 'C' and File.FILE_EDIT_TYPE.copied
     or File.FILE_EDIT_TYPE.none
 end
 

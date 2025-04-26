@@ -1,4 +1,4 @@
-local file = require('gitstatus.file')
+local Path = require('gitstatus.path')
 local parse = require('gitstatus.parse')
 
 describe('parse.lua', function()
@@ -22,244 +22,333 @@ describe('parse.lua', function()
     end)
     describe('single file', function()
       it('untracked', function()
-        local input = '?? file.txt'
-        local files = parse.git_status(input)
+        local input = '?? file.txt\n'
+        local paths = parse.git_status(input)
+        ---@type Path[]
         local expected = {
           {
-            name = 'file.txt',
-            state = file.FILE_STATE.untracked,
-            type = file.FILE_EDIT_TYPE.none,
+            path = 'file.txt',
+            orig_path = nil,
+            x = nil,
+            y = nil,
+            untracked = true,
           },
         }
-        assert.are_same(expected, files)
+        assert.are_same(expected, paths)
       end)
-      describe('not staged', function()
-        it('added', function()
-          local input = ' A file.txt'
-          local files = parse.git_status(input)
+      describe('modified', function()
+        it('index', function()
+          local input = 'M  file.txt\n'
+          local paths = parse.git_status(input)
+          ---@type Path[]
           local expected = {
             {
-              name = 'file.txt',
-              state = file.FILE_STATE.not_staged,
-              type = file.FILE_EDIT_TYPE.new,
+              path = 'file.txt',
+              orig_path = nil,
+              x = Path.STATUS.modified,
+              y = Path.STATUS.unmodified,
+              untracked = false,
             },
           }
-          assert.are_same(expected, files)
+          assert.are_same(expected, paths)
         end)
-        it('modified', function()
-          local input = ' M file.txt'
-          local files = parse.git_status(input)
+        it('working tree', function()
+          local input = ' M file.txt\n'
+          local paths = parse.git_status(input)
+          ---@type Path[]
           local expected = {
             {
-              name = 'file.txt',
-              state = file.FILE_STATE.not_staged,
-              type = file.FILE_EDIT_TYPE.modified,
+              path = 'file.txt',
+              orig_path = nil,
+              x = Path.STATUS.unmodified,
+              y = Path.STATUS.modified,
+              untracked = false,
             },
           }
-          assert.are_same(expected, files)
-        end)
-        it('deleted', function()
-          local input = ' D file.txt'
-          local files = parse.git_status(input)
-          local expected = {
-            {
-              name = 'file.txt',
-              state = file.FILE_STATE.not_staged,
-              type = file.FILE_EDIT_TYPE.deleted,
-            },
-          }
-          assert.are_same(expected, files)
-        end)
-        it('renamed', function()
-          local input = ' R file1.txt -> file2.txt'
-          local files = parse.git_status(input)
-          local expected = {
-            {
-              name = 'file1.txt -> file2.txt',
-              state = file.FILE_STATE.not_staged,
-              type = file.FILE_EDIT_TYPE.renamed,
-            },
-          }
-          assert.are_same(expected, files)
-        end)
-        it('file type changed', function()
-          local input = ' T file.txt'
-          local files = parse.git_status(input)
-          local expected = {
-            {
-              name = 'file.txt',
-              state = file.FILE_STATE.not_staged,
-              type = file.FILE_EDIT_TYPE.file_type_changed,
-            },
-          }
-          assert.are_same(expected, files)
-        end)
-        it('copied', function()
-          local input = ' C file.txt'
-          local files = parse.git_status(input)
-          local expected = {
-            {
-              name = 'file.txt',
-              state = file.FILE_STATE.not_staged,
-              type = file.FILE_EDIT_TYPE.copied,
-            },
-          }
-          assert.are_same(expected, files)
+          assert.are_same(expected, paths)
         end)
       end)
-      describe('staged', function()
-        it('added', function()
-          local input = 'A  file.txt'
-          local files = parse.git_status(input)
+      describe('added', function()
+        it('index', function()
+          local input = 'A  file.txt\n'
+          local paths = parse.git_status(input)
+          ---@type Path[]
           local expected = {
             {
-              name = 'file.txt',
-              state = file.FILE_STATE.staged,
-              type = file.FILE_EDIT_TYPE.new,
+              path = 'file.txt',
+              orig_path = nil,
+              x = Path.STATUS.added,
+              y = Path.STATUS.unmodified,
+              untracked = false,
             },
           }
-          assert.are_same(expected, files)
+          assert.are_same(expected, paths)
         end)
-        it('modified', function()
-          local input = 'M  file.txt'
-          local files = parse.git_status(input)
+        it('working tree', function()
+          local input = ' A file.txt\n'
+          local paths = parse.git_status(input)
+          ---@type Path[]
           local expected = {
             {
-              name = 'file.txt',
-              state = file.FILE_STATE.staged,
-              type = file.FILE_EDIT_TYPE.modified,
+              path = 'file.txt',
+              orig_path = nil,
+              x = Path.STATUS.unmodified,
+              y = Path.STATUS.added,
+              untracked = false,
             },
           }
-          assert.are_same(expected, files)
-        end)
-        it('deleted', function()
-          local input = 'D  file.txt'
-          local files = parse.git_status(input)
-          local expected = {
-            {
-              name = 'file.txt',
-              state = file.FILE_STATE.staged,
-              type = file.FILE_EDIT_TYPE.deleted,
-            },
-          }
-          assert.are_same(expected, files)
-        end)
-        it('renamed', function()
-          local input = 'R  file.txt -> new.txt'
-          local files = parse.git_status(input)
-          local expected = {
-            {
-              name = 'file.txt -> new.txt',
-              state = file.FILE_STATE.staged,
-              type = file.FILE_EDIT_TYPE.renamed,
-            },
-          }
-          assert.are_same(expected, files)
-        end)
-        it('file type changed', function()
-          local input = 'T  file.txt'
-          local files = parse.git_status(input)
-          local expected = {
-            {
-              name = 'file.txt',
-              state = file.FILE_STATE.staged,
-              type = file.FILE_EDIT_TYPE.file_type_changed,
-            },
-          }
-          assert.are_same(expected, files)
-        end)
-        it('copied', function()
-          local input = 'C  file.txt'
-          local files = parse.git_status(input)
-          local expected = {
-            {
-              name = 'file.txt',
-              state = file.FILE_STATE.staged,
-              type = file.FILE_EDIT_TYPE.copied,
-            },
-          }
-          assert.are_same(expected, files)
+          assert.are_same(expected, paths)
         end)
       end)
-      it('filename that contains spaces', function()
-        local input = '?? "a file with spaces.txt"'
-        local files = parse.git_status(input)
+      describe('deleted', function()
+        it('index', function()
+          local input = 'D  file.txt\n'
+          local paths = parse.git_status(input)
+          ---@type Path[]
+          local expected = {
+            {
+              path = 'file.txt',
+              orig_path = nil,
+              x = Path.STATUS.deleted,
+              y = Path.STATUS.unmodified,
+              untracked = false,
+            },
+          }
+          assert.are_same(expected, paths)
+        end)
+        it('working tree', function()
+          local input = ' D file.txt\n'
+          local paths = parse.git_status(input)
+          ---@type Path[]
+          local expected = {
+            {
+              path = 'file.txt',
+              orig_path = nil,
+              x = Path.STATUS.unmodified,
+              y = Path.STATUS.deleted,
+              untracked = false,
+            },
+          }
+          assert.are_same(expected, paths)
+        end)
+      end)
+      describe('renamed', function()
+        it('index', function()
+          local input = 'R  file1.txt -> file2.txt\n'
+          local paths = parse.git_status(input)
+          ---@type Path[]
+          local expected = {
+            {
+              path = 'file2.txt',
+              orig_path = 'file1.txt',
+              x = Path.STATUS.renamed,
+              y = Path.STATUS.unmodified,
+              untracked = false,
+            },
+          }
+          assert.are_same(expected, paths)
+        end)
+        it('working tree', function()
+          local input = ' R file1.txt -> file2.txt\n'
+          local paths = parse.git_status(input)
+          ---@type Path[]
+          local expected = {
+            {
+              path = 'file2.txt',
+              orig_path = 'file1.txt',
+              x = Path.STATUS.unmodified,
+              y = Path.STATUS.renamed,
+              untracked = false,
+            },
+          }
+          assert.are_same(expected, paths)
+        end)
+        it('subdirectory', function()
+          local input = 'R  dir/subdir/abc.txt -> dir/a.txt\n'
+          local paths = parse.git_status(input)
+          ---@type Path[]
+          local expected = {
+            {
+              path = 'dir/a.txt',
+              orig_path = 'dir/subdir/abc.txt',
+              x = Path.STATUS.renamed,
+              y = Path.STATUS.unmodified,
+              untracked = false,
+            },
+          }
+          assert.are_same(expected, paths)
+        end)
+        it('path with -', function()
+          local input = 'R  def-abc.txt -> abc-def.txt\n'
+          local paths = parse.git_status(input)
+          ---@type Path[]
+          local expected = {
+            {
+              path = 'abc-def.txt',
+              orig_path = 'def-abc.txt',
+              x = Path.STATUS.renamed,
+              y = Path.STATUS.unmodified,
+              untracked = false,
+            },
+          }
+          assert.are_same(expected, paths)
+        end)
+        it('path with >', function()
+          local input = 'R  def>abc.txt -> abc>def.txt\n'
+          local paths = parse.git_status(input)
+          ---@type Path[]
+          local expected = {
+            {
+              path = 'abc>def.txt',
+              orig_path = 'def>abc.txt',
+              x = Path.STATUS.renamed,
+              y = Path.STATUS.unmodified,
+              untracked = false,
+            },
+          }
+          assert.are_same(expected, paths)
+        end)
+      end)
+      describe('file type changed', function()
+        it('index', function()
+          local input = 'T  file.txt\n'
+          local paths = parse.git_status(input)
+          ---@type Path[]
+          local expected = {
+            {
+              path = 'file.txt',
+              orig_path = nil,
+              x = Path.STATUS.file_type_changed,
+              y = Path.STATUS.unmodified,
+              untracked = false,
+            },
+          }
+          assert.are_same(expected, paths)
+        end)
+        it('working tree', function()
+          local input = ' T file.txt\n'
+          local paths = parse.git_status(input)
+          ---@type Path[]
+          local expected = {
+            {
+              path = 'file.txt',
+              orig_path = nil,
+              x = Path.STATUS.unmodified,
+              y = Path.STATUS.file_type_changed,
+              untracked = false,
+            },
+          }
+          assert.are_same(expected, paths)
+        end)
+      end)
+      describe('copied', function()
+        it('index', function()
+          local input = 'C  file.txt\n'
+          local paths = parse.git_status(input)
+          ---@type Path[]
+          local expected = {
+            {
+              path = 'file.txt',
+              orig_path = nil,
+              x = Path.STATUS.copied,
+              y = Path.STATUS.unmodified,
+              untracked = false,
+            },
+          }
+          assert.are_same(expected, paths)
+        end)
+        it('working tree', function()
+          local input = ' C file.txt\n'
+          local paths = parse.git_status(input)
+          ---@type Path[]
+          local expected = {
+            {
+              path = 'file.txt',
+              orig_path = nil,
+              x = Path.STATUS.unmodified,
+              y = Path.STATUS.copied,
+              untracked = false,
+            },
+          }
+          assert.are_same(expected, paths)
+        end)
+      end)
+      describe('updated but unmerged', function()
+        it('index', function()
+          local input = 'U  file.txt\n'
+          local paths = parse.git_status(input)
+          ---@type Path[]
+          local expected = {
+            {
+              path = 'file.txt',
+              orig_path = nil,
+              x = Path.STATUS.updated_but_unmerged,
+              y = Path.STATUS.unmodified,
+              untracked = false,
+            },
+          }
+          assert.are_same(expected, paths)
+        end)
+        it('working tree', function()
+          local input = ' U file.txt\n'
+          local paths = parse.git_status(input)
+          ---@type Path[]
+          local expected = {
+            {
+              path = 'file.txt',
+              orig_path = nil,
+              x = Path.STATUS.unmodified,
+              y = Path.STATUS.updated_but_unmerged,
+              untracked = false,
+            },
+          }
+          assert.are_same(expected, paths)
+        end)
+      end)
+      it('path that contains spaces', function()
+        local input = '?? "a path with spaces.txt"\n'
+        local paths = parse.git_status(input)
+        ---@type Path[]
         local expected = {
           {
-            name = 'a file with spaces.txt',
-            state = file.FILE_STATE.untracked,
-            type = file.FILE_EDIT_TYPE.none,
+            path = 'a path with spaces.txt',
+            orig_path = nil,
+            x = nil,
+            y = nil,
+            untracked = true,
           },
         }
-        assert.are_same(expected, files)
+        assert.are_same(expected, paths)
       end)
     end)
-    it('files changed in index and working tree', function()
+    it('paths changed in index and working tree', function()
       local input = 'MM a.txt\nAD b.txt\nRT c.txt -> d.txt\n'
-      local files = parse.git_status(input)
+      local paths = parse.git_status(input)
+      ---@type Path[]
       local expected = {
         {
-          name = 'a.txt',
-          state = file.FILE_STATE.staged,
-          type = file.FILE_EDIT_TYPE.modified,
+          path = 'a.txt',
+          orig_path = nil,
+          x = Path.STATUS.modified,
+          y = Path.STATUS.modified,
+          untracked = false,
         },
         {
-          name = 'a.txt',
-          state = file.FILE_STATE.not_staged,
-          type = file.FILE_EDIT_TYPE.modified,
+          path = 'b.txt',
+          orig_path = nil,
+          x = Path.STATUS.added,
+          y = Path.STATUS.deleted,
+          untracked = false,
         },
         {
-          name = 'b.txt',
-          state = file.FILE_STATE.staged,
-          type = file.FILE_EDIT_TYPE.new,
-        },
-        {
-          name = 'b.txt',
-          state = file.FILE_STATE.not_staged,
-          type = file.FILE_EDIT_TYPE.deleted,
-        },
-        {
-          name = 'c.txt -> d.txt',
-          state = file.FILE_STATE.staged,
-          type = file.FILE_EDIT_TYPE.renamed,
-        },
-        {
-          name = 'c.txt -> d.txt',
-          state = file.FILE_STATE.not_staged,
-          type = file.FILE_EDIT_TYPE.file_type_changed,
+          path = 'd.txt',
+          orig_path = 'c.txt',
+          x = Path.STATUS.renamed,
+          y = Path.STATUS.file_type_changed,
+          untracked = false,
         },
       }
-      assert.are_same(expected, files)
-    end)
-  end)
-  describe('git_renamed_file', function()
-    it('file in current directory', function()
-      local str = 'abc.txt -> a.txt'
-      local old_name, new_name, err = parse.git_renamed_file(str)
-      assert.equal('abc.txt', old_name)
-      assert.equal('a.txt', new_name)
-      assert.is_nil(err)
-    end)
-    it('file in subdirectory', function()
-      local str = 'dir/subdir/abc.txt -> dir/a.txt'
-      local old_name, new_name, err = parse.git_renamed_file(str)
-      assert.equal('dir/subdir/abc.txt', old_name)
-      assert.equal('dir/a.txt', new_name)
-      assert.is_nil(err)
-    end)
-    it('paths with -', function()
-      local str = 'def-abc.txt -> abc-def.txt'
-      local old_name, new_name, err = parse.git_renamed_file(str)
-      assert.equal('def-abc.txt', old_name)
-      assert.equal('abc-def.txt', new_name)
-      assert.is_nil(err)
-    end)
-    it('paths with >', function()
-      local str = 'def>abc.txt -> abc>def.txt'
-      local old_name, new_name, err = parse.git_renamed_file(str)
-      assert.equal('def>abc.txt', old_name)
-      assert.equal('abc>def.txt', new_name)
-      assert.is_nil(err)
+      assert.are_same(expected, paths)
     end)
   end)
 end)

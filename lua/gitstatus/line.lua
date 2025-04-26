@@ -53,7 +53,7 @@ end
 function M.staged_files(lines)
   local count = 0
   for _, line in ipairs(lines) do
-    if line.file and line.file.state == File.FILE_STATE.staged then
+    if line.file and line.file.state == File.STATE.staged then
       count = count + 1
     end
   end

@@ -3,22 +3,22 @@ local File = require('gitstatus.file')
 
 local M = {}
 
----@param file_edit_type FILE_EDIT_TYPE
+---@param file_edit_type EDIT_TYPE
 ---@return string
 local function prefix(file_edit_type)
-  return file_edit_type == File.FILE_EDIT_TYPE.modified and 'modified: '
-    or file_edit_type == File.FILE_EDIT_TYPE.new and 'new file: '
-    or file_edit_type == File.FILE_EDIT_TYPE.deleted and 'deleted: '
-    or file_edit_type == File.FILE_EDIT_TYPE.renamed and 'renamed: '
-    or file_edit_type == File.FILE_EDIT_TYPE.file_type_changed and 'typechange: '
-    or file_edit_type == File.FILE_EDIT_TYPE.copied and 'copied: '
+  return file_edit_type == File.EDIT_TYPE.modified and 'modified: '
+    or file_edit_type == File.EDIT_TYPE.added and 'new file: '
+    or file_edit_type == File.EDIT_TYPE.deleted and 'deleted: '
+    or file_edit_type == File.EDIT_TYPE.renamed and 'renamed: '
+    or file_edit_type == File.EDIT_TYPE.file_type_changed and 'typechange: '
+    or file_edit_type == File.EDIT_TYPE.copied and 'copied: '
     or ''
 end
 
----@param file_state FILE_STATE
+---@param file_state STATE
 ---@return string
 local function get_highlight_group(file_state)
-  return file_state == File.FILE_STATE.staged and 'staged' or 'not_staged'
+  return file_state == File.STATE.staged and 'staged' or 'not_staged'
 end
 
 ---@param files File[]
@@ -28,15 +28,24 @@ local function split_files_by_state(files)
   local not_staged = {}
   local untracked = {}
   for _, file in ipairs(files) do
-    if file.state == File.FILE_STATE.staged then
+    if file.state == File.STATE.staged then
       table.insert(staged, file)
-    elseif file.state == File.FILE_STATE.not_staged then
+    elseif file.state == File.STATE.not_staged then
       table.insert(not_staged, file)
-    elseif file.state == File.FILE_STATE.untracked then
+    elseif file.state == File.STATE.untracked then
       table.insert(untracked, file)
     end
   end
   return staged, not_staged, untracked
+end
+
+---@param file File
+---@return string
+local function file_to_name(file)
+  if file.orig_path ~= nil then
+    return prefix(file.type) .. file.orig_path .. ' -> ' .. file.path
+  end
+  return prefix(file.type) .. file.path
 end
 
 ---@param branch string
@@ -124,7 +133,7 @@ function M.format_out_lines(branch, files)
       local line = {
         parts = {
           {
-            str = prefix(file.type) .. file.name,
+            str = file_to_name(file),
             hl_group = get_highlight_group(file.state),
           },
         },
@@ -167,7 +176,7 @@ function M.make_commit_init_msg(branch, files)
       table.insert(lines, name(i))
     end
     for _, file in ipairs(files_of_type) do
-      table.insert(lines, '#\t' .. prefix(file.type) .. file.name)
+      table.insert(lines, '#\t' .. file_to_name(file))
     end
   end
   table.insert(lines, '#')

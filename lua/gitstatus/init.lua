@@ -41,6 +41,7 @@ end
 ---@param lines Line[]
 ---@return string[]
 local function get_lines_strings(lines)
+  ---@type string[]
   local strings = {}
   for _, line in ipairs(lines) do
     local str = ''
@@ -72,7 +73,8 @@ local function refresh_buffer(
     vim.api.nvim_cmd({ cmd = 'q' }, {})
     return
   end
-  local files = parse.git_status(status_out)
+  local paths = parse.git_status(status_out)
+  local files = file.paths_to_files(paths)
 
   local branch_out, err2 = git.branch()
   if err2 ~= nil then
@@ -111,51 +113,6 @@ local function refresh_buffer(
   vim.api.nvim_win_set_cursor(0, { get_new_cursor_row(cursor_file), col })
 end
 
--- TODO: refactor this function
----@param line Line
----@return boolean # success
-local function toggle_stage_line(line)
-  if line.file == nil then
-    warn_msg('Unable to stage/unstage file: invalid line')
-    return false
-  end
-
-  if line.file.state ~= file.FILE_STATE.staged then
-    local err = git.stage_file(line.file.name)
-    if err ~= nil then
-      err_msg(err)
-      return false
-    end
-    return true
-  end
-
-  if line.file.type == file.FILE_EDIT_TYPE.renamed then
-    local old_name, new_name, err = parse.git_renamed_file(line.file.name)
-    if err ~= nil then
-      err_msg('Unable to unstage file: ' .. err)
-      return false
-    end
-    err = git.unstage_file(old_name)
-    if err ~= nil then
-      err_msg(err)
-      return false
-    end
-    err = git.unstage_file(new_name)
-    if err ~= nil then
-      err_msg(err)
-      return false
-    end
-    return true
-  end
-
-  local err = git.unstage_file(line.file.name)
-  if err ~= nil then
-    err_msg(err)
-    return false
-  end
-  return true
-end
-
 ---@param buf integer
 ---@param namespace integer
 ---@param parent_win_width number
@@ -168,9 +125,25 @@ local function toggle_stage_file(
 )
   local row = vim.api.nvim_win_get_cursor(0)[1]
   local line = buf_lines[row]
-  local success = toggle_stage_line(line)
-  if not success then
+  if line.file == nil then
+    warn_msg('Unable to stage/unstage file: invalid line')
     return
+  end
+
+  local toggle_stage_file_func = line.file.state == file.STATE.staged
+      and git.unstage_file
+    or git.stage_file
+  local err = toggle_stage_file_func(line.file.path)
+  if err ~= nil then
+    err_msg(err)
+    return
+  end
+  if line.file.orig_path ~= nil then
+    err = toggle_stage_file_func(line.file.orig_path)
+    if err ~= nil then
+      err_msg(err)
+      return
+    end
   end
 
   local cursor_file_index = Line.next_file_index(buf_lines, row)
@@ -221,27 +194,18 @@ local function open_file()
     return
   end
 
-  local name = line.file.name
-  if line.file.type == file.FILE_EDIT_TYPE.renamed then
-    local _, new_name, err = parse.git_renamed_file(line.file.name)
-    if err ~= nil then
-      err_msg('Unable to open file: ' .. err)
-      return
-    end
-    name = new_name
-  end
-
   vim.api.nvim_cmd({ cmd = 'q' }, {})
   -- TODO: Only open file if it's not already open
   -- https://github.com/Mauritz8/gitstatus.nvim/issues/40
   -- vim.print(vim.api.nvim_buf_get_name(0))
   --  if name ~= current_buffer exec following command
-  vim.api.nvim_cmd({ cmd = 'e', args = { name } }, {})
+  vim.api.nvim_cmd({ cmd = 'e', args = { line.file.path } }, {})
 end
 
 ---@param lines string[]
 ---@return string[]
 local function filter_out_lines_with_comment(lines)
+  ---@type Line[]
   local new_lines = {}
   for _, line in ipairs(lines) do
     if line:sub(1, 1) ~= '#' then
@@ -262,7 +226,8 @@ local function open_commit_prompt()
     err_msg('Unable to commit: ' .. err)
     return
   end
-  local files = parse.git_status(status_out)
+  local paths = parse.git_status(status_out)
+  local files = file.paths_to_files(paths)
 
   local branch_out, err2 = git.branch()
   if err2 ~= nil then
@@ -306,6 +271,7 @@ end
 ---@param parent_win_width number
 ---@param parent_win_height number
 local function open_help_window(parent_win_width, parent_win_height)
+  ---@type Line[]
   local lines = {
     {
       parts = {

@@ -6,6 +6,10 @@ test:
 lint:
 	luacheck . --globals vim
 
+.PHONY: luals-check
+luals-check:
+	lua-language-server --check .
+
 .PHONY: format
 format:
 	stylua .

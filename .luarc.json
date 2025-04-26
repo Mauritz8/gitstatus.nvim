@@ -6,4 +6,5 @@
     "${3rd}/luassert/",
     "${3rd}/luv/",
   ],
+  "diagnostics.globals": ["vim"],
 }

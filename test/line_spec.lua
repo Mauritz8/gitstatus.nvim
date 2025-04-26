@@ -1,32 +1,35 @@
 local File = require('gitstatus.file')
 local line = require('gitstatus.line')
 
+---@type File
 local test_file = {
-  name = '',
-  state = File.FILE_STATE.staged,
-  type = File.FILE_EDIT_TYPE.modified,
+  path = '',
+  state = File.STATE.staged,
+  type = File.EDIT_TYPE.modified,
 }
 
 describe('line.lua', function()
   describe('next_file_index', function()
     it('has next file', function()
+      ---@type Line[]
       local lines = {
-        { str = '', file = nil },
-        { str = '', file = test_file },
-        { str = '', file = nil },
-        { str = '', file = test_file },
-        { str = '', file = nil },
+        { parts = { str = '' }, file = nil },
+        { parts = { str = '' }, file = test_file },
+        { parts = { str = '' }, file = nil },
+        { parts = { str = '' }, file = test_file },
+        { parts = { str = '' }, file = nil },
       }
       local next_file_index = line.next_file_index(lines, 2)
       assert.equal(4, next_file_index)
     end)
     it('on last file', function()
+      ---@type Line[]
       local lines = {
-        { str = '', file = nil },
-        { str = '', file = test_file },
-        { str = '', file = nil },
-        { str = '', file = test_file },
-        { str = '', file = nil },
+        { parts = { str = '' }, file = nil },
+        { parts = { str = '' }, file = test_file },
+        { parts = { str = '' }, file = nil },
+        { parts = { str = '' }, file = test_file },
+        { parts = { str = '' }, file = nil },
       }
       local next_file_index = line.next_file_index(lines, 4)
       assert.equal(nil, next_file_index)
@@ -34,23 +37,25 @@ describe('line.lua', function()
   end)
   describe('prev_file_index', function()
     it('has previous file', function()
+      ---@type Line[]
       local lines = {
-        { str = '', file = nil },
-        { str = '', file = test_file },
-        { str = '', file = nil },
-        { str = '', file = test_file },
-        { str = '', file = nil },
+        { parts = { str = '' }, file = nil },
+        { parts = { str = '' }, file = test_file },
+        { parts = { str = '' }, file = nil },
+        { parts = { str = '' }, file = test_file },
+        { parts = { str = '' }, file = nil },
       }
       local prev_file_index = line.prev_file_index(lines, 4)
       assert.equal(2, prev_file_index)
     end)
     it('on first file', function()
+      ---@type Line[]
       local lines = {
-        { str = '', file = nil },
-        { str = '', file = test_file },
-        { str = '', file = nil },
-        { str = '', file = test_file },
-        { str = '', file = nil },
+        { parts = { str = '' }, file = nil },
+        { parts = { str = '' }, file = test_file },
+        { parts = { str = '' }, file = nil },
+        { parts = { str = '' }, file = test_file },
+        { parts = { str = '' }, file = nil },
       }
       local prev_file_index = line.prev_file_index(lines, 2)
       assert.equal(nil, prev_file_index)
@@ -58,53 +63,65 @@ describe('line.lua', function()
   end)
   describe('line_index_of_file', function()
     it('file exists', function()
+      ---@type File
+      local file = {
+        path = 'b',
+        state = File.STATE.not_staged,
+      }
+      ---@type Line[]
       local lines = {
         {
-          str = '',
+          parts = { str = '' },
           file = {
-            name = 'a',
+            path = 'a',
+            state = File.STATE.not_staged,
           },
         },
         {
-          str = '',
+          parts = { str = '' },
           file = {
-            name = 'b',
+            path = 'b',
+            state = File.STATE.not_staged,
           },
         },
         {
-          str = '',
+          parts = { str = '' },
           file = {
-            name = 'c',
+            path = 'c',
+            state = File.STATE.not_staged,
           },
         },
-      }
-      local file = {
-        name = 'b',
       }
       local line_index = line.line_index_of_file(lines, file)
       assert.equal(2, line_index)
     end)
     it('file does not exist', function()
+      ---@type File
       local file = {
-        name = 'd',
+        path = 'd',
+        state = File.STATE.not_staged,
       }
+      ---@type Line[]
       local lines = {
         {
-          str = '',
+          parts = { str = '' },
           file = {
-            name = 'a',
+            path = 'a',
+            state = File.STATE.not_staged,
           },
         },
         {
-          str = '',
+          parts = { str = '' },
           file = {
-            name = 'b',
+            path = 'b',
+            state = File.STATE.not_staged,
           },
         },
         {
-          str = '',
+          parts = { str = '' },
           file = {
-            name = 'c',
+            path = 'c',
+            state = File.STATE.not_staged,
           },
         },
       }
@@ -114,66 +131,68 @@ describe('line.lua', function()
   end)
   describe('staged_files', function()
     it('multiple staged files', function()
+      ---@type Line[]
       local lines = {
         {
-          str = '',
+          parts = { str = '' },
           file = {
-            name = 'a',
-            state = File.FILE_STATE.staged,
+            path = 'a',
+            state = File.STATE.staged,
           },
         },
         {
-          str = '',
+          parts = { str = '' },
           file = {
-            name = 'b',
-            state = File.FILE_STATE.untracked,
+            path = 'b',
+            state = File.STATE.untracked,
           },
         },
         {
-          str = '',
+          parts = { str = '' },
           file = {
-            name = 'c',
-            state = File.FILE_STATE.not_staged,
+            path = 'c',
+            state = File.STATE.not_staged,
           },
         },
         {
-          str = '',
+          parts = { str = '' },
           file = {
-            name = 'd',
-            state = File.FILE_STATE.staged,
+            path = 'd',
+            state = File.STATE.staged,
           },
         },
       }
       assert.equal(2, line.staged_files(lines))
     end)
     it('no staged files', function()
+      ---@type Line[]
       local lines = {
         {
-          str = '',
+          parts = { str = '' },
           file = {
-            name = 'a',
-            state = File.FILE_STATE.not_staged,
+            path = 'a',
+            state = File.STATE.not_staged,
           },
         },
         {
-          str = '',
+          parts = { str = '' },
           file = {
-            name = 'b',
-            state = File.FILE_STATE.untracked,
+            path = 'b',
+            state = File.STATE.untracked,
           },
         },
         {
-          str = '',
+          parts = { str = '' },
           file = {
-            name = 'c',
-            state = File.FILE_STATE.not_staged,
+            path = 'c',
+            state = File.STATE.not_staged,
           },
         },
         {
-          str = '',
+          parts = { str = '' },
           file = {
-            name = 'd',
-            state = File.FILE_STATE.not_staged,
+            path = 'd',
+            state = File.STATE.not_staged,
           },
         },
       }

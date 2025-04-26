@@ -1,4 +1,4 @@
-local File = require('gitstatus.file')
+local Path = require('gitstatus.path')
 
 local M = {}
 
@@ -29,72 +29,65 @@ local function split(str, delim)
 end
 
 ---@param str string
----@return FILE_EDIT_TYPE
-local function str_to_file_type(str)
-  return str == 'M' and File.FILE_EDIT_TYPE.modified
-    or str == 'A' and File.FILE_EDIT_TYPE.new
-    or str == 'D' and File.FILE_EDIT_TYPE.deleted
-    or str == 'R' and File.FILE_EDIT_TYPE.renamed
-    or str == 'T' and File.FILE_EDIT_TYPE.file_type_changed
-    or str == 'C' and File.FILE_EDIT_TYPE.copied
-    or File.FILE_EDIT_TYPE.none
+---@return STATUS?
+local function str_to_status(str)
+  return str == ' ' and Path.STATUS.unmodified
+    or str == 'M' and Path.STATUS.modified
+    or str == 'T' and Path.STATUS.file_type_changed
+    or str == 'A' and Path.STATUS.added
+    or str == 'D' and Path.STATUS.deleted
+    or str == 'R' and Path.STATUS.renamed
+    or str == 'C' and Path.STATUS.copied
+    or str == 'U' and Path.STATUS.updated_but_unmerged
+    or nil
 end
 
 ---@param line string
----@return File[]
-local function line_to_files(line)
-  local name = line:sub(4)
-  if name:sub(1, 1) == '"' and name:sub(-1, -1) == '"' then
-    name = name:sub(2, -2)
+---@return Path
+local function line_to_path(line)
+  -- TODO: what if filename is empty
+  local path = line:sub(4)
+  local orig_path = nil
+  if path:find(' %-> ') then
+    local paths = split(path, ' %-> ')
+    -- TODO: what if filename contains ' -> '
+    assert(#paths == 2)
+    path = paths[2]
+    orig_path = paths[1]
   end
 
-  if line:sub(1, 2) == '??' then
-    return {
-      {
-        name = name,
-        state = File.FILE_STATE.untracked,
-        type = File.FILE_EDIT_TYPE.none,
-      },
-    }
+  if path:sub(1, 1) == '"' and path:sub(-1, -1) == '"' then
+    path = path:sub(2, -2)
+  end
+  if
+    orig_path
+    and orig_path:sub(1, 1) == '"'
+    and orig_path:sub(-1, -1) == '"'
+  then
+    orig_path = orig_path:sub(2, -2)
   end
 
-  local files = {}
-
-  local staged_file_type = line:sub(1, 1)
-  if staged_file_type ~= ' ' then
-    local file = {
-      name = name,
-      state = File.FILE_STATE.staged,
-      type = str_to_file_type(staged_file_type),
-    }
-    table.insert(files, file)
-  end
-
-  local unstaged_file_type = line:sub(2, 2)
-  if unstaged_file_type ~= ' ' then
-    local file = {
-      name = name,
-      state = File.FILE_STATE.not_staged,
-      type = str_to_file_type(unstaged_file_type),
-    }
-    table.insert(files, file)
-  end
-
-  return files
+  return {
+    path = path,
+    orig_path = orig_path,
+    x = str_to_status(line:sub(1, 1)),
+    y = str_to_status(line:sub(2, 2)),
+    untracked = line:sub(1, 2) == '??',
+  }
 end
 
 ---@param status_output string
----@return File[]
+---@return Path[]
 function M.git_status(status_output)
   local lines = split(status_output, '\n')
-  local files = {}
+
+  ---@type Path[]
+  local paths = {}
   for _, line in ipairs(lines) do
-    local line_files = line_to_files(line)
-    for _, file in ipairs(line_files) do
-      table.insert(files, file)
-    end
+    local path = line_to_path(line)
+    table.insert(paths, path)
   end
-  return files
+  return paths
 end
 
 ---@param branch_output string
@@ -102,16 +95,6 @@ end
 function M.git_branch(branch_output)
   local branch, _ = branch_output:gsub('\n', '')
   return branch
-end
-
----@param renamed_file_name string
----@return string, string, string? # old name, new name, error
-function M.git_renamed_file(renamed_file_name)
-  local names = split(renamed_file_name, ' %-> ')
-  if #names ~= 2 then
-    return '', '', 'could not parse file names'
-  end
-  return names[1], names[2], nil
 end
 
 return M

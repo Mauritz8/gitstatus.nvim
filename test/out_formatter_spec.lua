@@ -5,8 +5,10 @@ describe('out_formatter.lua', function()
   describe('format_out_lines', function()
     it('no files', function()
       local branch = 'main'
+      ---@type File[]
       local files = {}
       local lines = out_formatter.format_out_lines(branch, files)
+      ---@type Line[]
       local expected = {
         {
           parts = {
@@ -57,29 +59,32 @@ describe('out_formatter.lua', function()
     end)
     it('files with all states', function()
       local branch = 'main'
+      ---@type File[]
       local files = {
         {
-          name = 'file1.txt',
-          state = file.FILE_STATE.staged,
-          type = file.FILE_EDIT_TYPE.modified,
+          path = 'file1.txt',
+          state = file.STATE.staged,
+          type = file.EDIT_TYPE.modified,
         },
         {
-          name = 'file2.txt',
-          state = file.FILE_STATE.not_staged,
-          type = file.FILE_EDIT_TYPE.deleted,
+          path = 'file2.txt',
+          state = file.STATE.not_staged,
+          type = file.EDIT_TYPE.deleted,
         },
         {
-          name = 'file3.txt',
-          state = file.FILE_STATE.untracked,
-          type = file.FILE_EDIT_TYPE.none,
+          path = 'file3.txt',
+          state = file.STATE.untracked,
+          type = nil,
         },
         {
-          name = 'file4.txt',
-          state = file.FILE_STATE.staged,
-          type = file.FILE_EDIT_TYPE.new,
+          path = 'file5.txt',
+          orig_path = 'file4.txt',
+          state = file.STATE.staged,
+          type = file.EDIT_TYPE.renamed,
         },
       }
       local lines = out_formatter.format_out_lines(branch, files)
+      ---@type Line[]
       local expected = {
         {
           parts = {
@@ -137,7 +142,7 @@ describe('out_formatter.lua', function()
         {
           parts = {
             {
-              str = 'new file: file4.txt',
+              str = 'renamed: file4.txt -> file5.txt',
               hl_group = 'staged',
             },
           },

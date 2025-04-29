@@ -42,30 +42,42 @@ local function str_to_status(str)
     or nil
 end
 
+---@param path_str string
+---@return string, string? #path, orig_path
+local function parse_line_path(path_str)
+  local path1 = ''
+  local path2 = ''
+  local on_path1 = true
+  local inside_quote = false
+  local i = 1
+  while i <= #path_str do
+    local ch = path_str:sub(i, i)
+    if ch == '"' and path_str:sub(i - 1, i) ~= '\\"' then
+      inside_quote = not inside_quote
+    elseif path_str:sub(i, i + 3) == ' -> ' and not inside_quote then
+      on_path1 = false
+      i = i + 3
+    else
+      if on_path1 then
+        path1 = path1 .. ch
+      else
+        path2 = path2 .. ch
+      end
+    end
+    i = i + 1
+  end
+
+  if path2 ~= '' then
+    return path2, path1
+  else
+    return path1, nil
+  end
+end
+
 ---@param line string
 ---@return Path
 local function line_to_path(line)
-  -- TODO: what if filename is empty
-  local path = line:sub(4)
-  local orig_path = nil
-  if path:find(' %-> ') then
-    local paths = split(path, ' %-> ')
-    -- TODO: what if filename contains ' -> '
-    assert(#paths == 2)
-    path = paths[2]
-    orig_path = paths[1]
-  end
-
-  if path:sub(1, 1) == '"' and path:sub(-1, -1) == '"' then
-    path = path:sub(2, -2)
-  end
-  if
-    orig_path
-    and orig_path:sub(1, 1) == '"'
-    and orig_path:sub(-1, -1) == '"'
-  then
-    orig_path = orig_path:sub(2, -2)
-  end
+  local path, orig_path = parse_line_path(line:sub(4))
 
   ---@type StatusCode?
   local status_code = nil

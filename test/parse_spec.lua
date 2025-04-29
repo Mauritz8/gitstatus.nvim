@@ -229,6 +229,23 @@ describe('parse.lua', function()
           }
           assert.are_same(expected, paths)
         end)
+        it('path with " -> "', function()
+          local input = 'R  "def -> abc.txt" -> "abc -> def.txt"\n'
+          local paths = parse.git_status(input)
+          ---@type Path[]
+          local expected = {
+            {
+              path = 'abc -> def.txt',
+              orig_path = 'def -> abc.txt',
+              status_code = {
+                x = Path.STATUS.renamed,
+                y = Path.STATUS.unmodified,
+              },
+              unmerged = false,
+            },
+          }
+          assert.are_same(expected, paths)
+        end)
       end)
       describe('file type changed', function()
         it('index', function()
@@ -345,6 +362,34 @@ describe('parse.lua', function()
         local expected = {
           {
             path = 'a path with spaces.txt',
+            orig_path = nil,
+            status_code = nil,
+            unmerged = false,
+          },
+        }
+        assert.are_same(expected, paths)
+      end)
+      it('path that contains " -> "', function()
+        local input = '?? "test -> abc"\n'
+        local paths = parse.git_status(input)
+        ---@type Path[]
+        local expected = {
+          {
+            path = 'test -> abc',
+            orig_path = nil,
+            status_code = nil,
+            unmerged = false,
+          },
+        }
+        assert.are_same(expected, paths)
+      end)
+      it('path with spaces that contains "', function()
+        local input = '?? "a fil\\"e.txt"\n'
+        local paths = parse.git_status(input)
+        ---@type Path[]
+        local expected = {
+          {
+            path = 'a fil\\"e.txt',
             orig_path = nil,
             status_code = nil,
             unmerged = false,

@@ -13,6 +13,7 @@ describe('file.lua', function()
             x = Path.STATUS.modified,
             y = Path.STATUS.unmodified,
           },
+          unmerged = false,
         },
       }
       local files = file.paths_to_files(paths)
@@ -37,6 +38,7 @@ describe('file.lua', function()
             x = Path.STATUS.unmodified,
             y = Path.STATUS.modified,
           },
+          unmerged = false,
         },
       }
       local files = file.paths_to_files(paths)
@@ -62,6 +64,7 @@ describe('file.lua', function()
               x = Path.STATUS.file_type_changed,
               y = Path.STATUS.modified,
             },
+            unmerged = false,
           },
         }
         local files = file.paths_to_files(paths)
@@ -92,6 +95,7 @@ describe('file.lua', function()
               x = Path.STATUS.renamed,
               y = Path.STATUS.modified,
             },
+            unmerged = false,
           },
         }
         local files = file.paths_to_files(paths)

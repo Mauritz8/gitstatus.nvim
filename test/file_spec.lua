@@ -9,9 +9,10 @@ describe('file.lua', function()
         {
           path = 'file.txt',
           orig_path = nil,
-          x = Path.STATUS.modified,
-          y = Path.STATUS.unmodified,
-          untracked = false,
+          status_code = {
+            x = Path.STATUS.modified,
+            y = Path.STATUS.unmodified,
+          },
         },
       }
       local files = file.paths_to_files(paths)
@@ -32,9 +33,10 @@ describe('file.lua', function()
         {
           path = 'file.txt',
           orig_path = nil,
-          x = Path.STATUS.unmodified,
-          y = Path.STATUS.modified,
-          untracked = false,
+          status_code = {
+            x = Path.STATUS.unmodified,
+            y = Path.STATUS.modified,
+          },
         },
       }
       local files = file.paths_to_files(paths)
@@ -56,9 +58,10 @@ describe('file.lua', function()
           {
             path = 'file.txt',
             orig_path = nil,
-            x = Path.STATUS.file_type_changed,
-            y = Path.STATUS.modified,
-            untracked = false,
+            status_code = {
+              x = Path.STATUS.file_type_changed,
+              y = Path.STATUS.modified,
+            },
           },
         }
         local files = file.paths_to_files(paths)
@@ -85,9 +88,10 @@ describe('file.lua', function()
           {
             path = 'file2.txt',
             orig_path = 'file1.txt',
-            x = Path.STATUS.renamed,
-            y = Path.STATUS.modified,
-            untracked = false,
+            status_code = {
+              x = Path.STATUS.renamed,
+              y = Path.STATUS.modified,
+            },
           },
         }
         local files = file.paths_to_files(paths)

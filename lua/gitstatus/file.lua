@@ -35,7 +35,8 @@ function M.equal(file1, file2)
     and file1.type == file2.type
 end
 
----@param status STATUS?
+---@param status STATUS
+---@return EDIT_TYPE?
 local function path_status_to_edit_type(status)
   assert(status ~= Path.STATUS.unmodified)
   -- TODO: How to handle merge states that are not supported yet?
@@ -55,11 +56,11 @@ local function path_to_files(path)
   ---@type File[]
   local files = {}
 
-  if path.untracked then
+  if path.status_code == nil then
     ---@type File
     local file = {
       path = path.path,
-      orig_path = nil,
+      orig_path = path.orig_path,
       state = M.STATE.untracked,
       type = nil,
     }
@@ -67,26 +68,30 @@ local function path_to_files(path)
     return files
   end
 
-  if path.x ~= Path.STATUS.unmodified then
-    local orig_path = path.x == Path.STATUS.renamed and path.orig_path or nil
+  if path.status_code.x ~= Path.STATUS.unmodified then
+    local orig_path = path.status_code.x == Path.STATUS.renamed
+        and path.orig_path
+      or nil
     ---@type File
     local file = {
       path = path.path,
       orig_path = orig_path,
       state = M.STATE.staged,
-      type = path_status_to_edit_type(path.x),
+      type = path_status_to_edit_type(path.status_code.x),
     }
     table.insert(files, file)
   end
 
-  if path.y ~= Path.STATUS.unmodified then
-    local orig_path = path.y == Path.STATUS.renamed and path.orig_path or nil
+  if path.status_code.y ~= Path.STATUS.unmodified then
+    local orig_path = path.status_code.y == Path.STATUS.renamed
+        and path.orig_path
+      or nil
     ---@type File
     local file = {
       path = path.path,
       orig_path = orig_path,
       state = M.STATE.not_staged,
-      type = path_status_to_edit_type(path.y),
+      type = path_status_to_edit_type(path.status_code.y),
     }
     table.insert(files, file)
   end

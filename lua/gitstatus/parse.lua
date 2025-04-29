@@ -67,12 +67,24 @@ local function line_to_path(line)
     orig_path = orig_path:sub(2, -2)
   end
 
+  ---@type StatusCode?
+  local status_code = nil
+  if line:sub(1, 2) ~= '??' then
+    local x = str_to_status(line:sub(1, 1))
+    local y = str_to_status(line:sub(2, 2))
+    assert(x ~= nil)
+    assert(y ~= nil)
+    status_code = {
+      x = x,
+      y = y,
+    }
+  end
+
+  ---@type Path
   return {
     path = path,
     orig_path = orig_path,
-    x = str_to_status(line:sub(1, 1)),
-    y = str_to_status(line:sub(2, 2)),
-    untracked = line:sub(1, 2) == '??',
+    status_code = status_code,
   }
 end
 

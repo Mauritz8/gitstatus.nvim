@@ -3,7 +3,7 @@ local File = require('gitstatus.file')
 
 local M = {}
 
----@param file_edit_type EDIT_TYPE
+---@param file_edit_type EDIT_TYPE?
 ---@return string
 local function prefix(file_edit_type)
   return file_edit_type == File.EDIT_TYPE.modified and 'modified: '

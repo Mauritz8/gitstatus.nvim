@@ -12,12 +12,14 @@ M.STATUS = {
   updated_but_unmerged = 7,
 }
 
+---@class StatusCode
+---@field x STATUS
+---@field y STATUS
+
 -- https://git-scm.com/docs/git-status
 ---@class Path
 ---@field path string
 ---@field orig_path string?
----@field x STATUS?
----@field y STATUS?
----@field untracked boolean
+---@field status_code StatusCode?
 
 return M

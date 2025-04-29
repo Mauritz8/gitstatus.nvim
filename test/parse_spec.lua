@@ -29,9 +29,7 @@ describe('parse.lua', function()
           {
             path = 'file.txt',
             orig_path = nil,
-            x = nil,
-            y = nil,
-            untracked = true,
+            status_code = nil,
           },
         }
         assert.are_same(expected, paths)
@@ -45,9 +43,10 @@ describe('parse.lua', function()
             {
               path = 'file.txt',
               orig_path = nil,
-              x = Path.STATUS.modified,
-              y = Path.STATUS.unmodified,
-              untracked = false,
+              status_code = {
+                x = Path.STATUS.modified,
+                y = Path.STATUS.unmodified,
+              },
             },
           }
           assert.are_same(expected, paths)
@@ -60,9 +59,10 @@ describe('parse.lua', function()
             {
               path = 'file.txt',
               orig_path = nil,
-              x = Path.STATUS.unmodified,
-              y = Path.STATUS.modified,
-              untracked = false,
+              status_code = {
+                x = Path.STATUS.unmodified,
+                y = Path.STATUS.modified,
+              },
             },
           }
           assert.are_same(expected, paths)
@@ -77,9 +77,10 @@ describe('parse.lua', function()
             {
               path = 'file.txt',
               orig_path = nil,
-              x = Path.STATUS.added,
-              y = Path.STATUS.unmodified,
-              untracked = false,
+              status_code = {
+                x = Path.STATUS.added,
+                y = Path.STATUS.unmodified,
+              },
             },
           }
           assert.are_same(expected, paths)
@@ -92,9 +93,10 @@ describe('parse.lua', function()
             {
               path = 'file.txt',
               orig_path = nil,
-              x = Path.STATUS.unmodified,
-              y = Path.STATUS.added,
-              untracked = false,
+              status_code = {
+                x = Path.STATUS.unmodified,
+                y = Path.STATUS.added,
+              },
             },
           }
           assert.are_same(expected, paths)
@@ -109,9 +111,10 @@ describe('parse.lua', function()
             {
               path = 'file.txt',
               orig_path = nil,
-              x = Path.STATUS.deleted,
-              y = Path.STATUS.unmodified,
-              untracked = false,
+              status_code = {
+                x = Path.STATUS.deleted,
+                y = Path.STATUS.unmodified,
+              },
             },
           }
           assert.are_same(expected, paths)
@@ -124,9 +127,10 @@ describe('parse.lua', function()
             {
               path = 'file.txt',
               orig_path = nil,
-              x = Path.STATUS.unmodified,
-              y = Path.STATUS.deleted,
-              untracked = false,
+              status_code = {
+                x = Path.STATUS.unmodified,
+                y = Path.STATUS.deleted,
+              },
             },
           }
           assert.are_same(expected, paths)
@@ -141,9 +145,10 @@ describe('parse.lua', function()
             {
               path = 'file2.txt',
               orig_path = 'file1.txt',
-              x = Path.STATUS.renamed,
-              y = Path.STATUS.unmodified,
-              untracked = false,
+              status_code = {
+                x = Path.STATUS.renamed,
+                y = Path.STATUS.unmodified,
+              },
             },
           }
           assert.are_same(expected, paths)
@@ -156,9 +161,10 @@ describe('parse.lua', function()
             {
               path = 'file2.txt',
               orig_path = 'file1.txt',
-              x = Path.STATUS.unmodified,
-              y = Path.STATUS.renamed,
-              untracked = false,
+              status_code = {
+                x = Path.STATUS.unmodified,
+                y = Path.STATUS.renamed,
+              },
             },
           }
           assert.are_same(expected, paths)
@@ -171,9 +177,10 @@ describe('parse.lua', function()
             {
               path = 'dir/a.txt',
               orig_path = 'dir/subdir/abc.txt',
-              x = Path.STATUS.renamed,
-              y = Path.STATUS.unmodified,
-              untracked = false,
+              status_code = {
+                x = Path.STATUS.renamed,
+                y = Path.STATUS.unmodified,
+              },
             },
           }
           assert.are_same(expected, paths)
@@ -186,9 +193,10 @@ describe('parse.lua', function()
             {
               path = 'abc-def.txt',
               orig_path = 'def-abc.txt',
-              x = Path.STATUS.renamed,
-              y = Path.STATUS.unmodified,
-              untracked = false,
+              status_code = {
+                x = Path.STATUS.renamed,
+                y = Path.STATUS.unmodified,
+              },
             },
           }
           assert.are_same(expected, paths)
@@ -201,9 +209,10 @@ describe('parse.lua', function()
             {
               path = 'abc>def.txt',
               orig_path = 'def>abc.txt',
-              x = Path.STATUS.renamed,
-              y = Path.STATUS.unmodified,
-              untracked = false,
+              status_code = {
+                x = Path.STATUS.renamed,
+                y = Path.STATUS.unmodified,
+              },
             },
           }
           assert.are_same(expected, paths)
@@ -218,9 +227,10 @@ describe('parse.lua', function()
             {
               path = 'file.txt',
               orig_path = nil,
-              x = Path.STATUS.file_type_changed,
-              y = Path.STATUS.unmodified,
-              untracked = false,
+              status_code = {
+                x = Path.STATUS.file_type_changed,
+                y = Path.STATUS.unmodified,
+              },
             },
           }
           assert.are_same(expected, paths)
@@ -233,9 +243,10 @@ describe('parse.lua', function()
             {
               path = 'file.txt',
               orig_path = nil,
-              x = Path.STATUS.unmodified,
-              y = Path.STATUS.file_type_changed,
-              untracked = false,
+              status_code = {
+                x = Path.STATUS.unmodified,
+                y = Path.STATUS.file_type_changed,
+              },
             },
           }
           assert.are_same(expected, paths)
@@ -250,9 +261,10 @@ describe('parse.lua', function()
             {
               path = 'file.txt',
               orig_path = nil,
-              x = Path.STATUS.copied,
-              y = Path.STATUS.unmodified,
-              untracked = false,
+              status_code = {
+                x = Path.STATUS.copied,
+                y = Path.STATUS.unmodified,
+              },
             },
           }
           assert.are_same(expected, paths)
@@ -265,9 +277,10 @@ describe('parse.lua', function()
             {
               path = 'file.txt',
               orig_path = nil,
-              x = Path.STATUS.unmodified,
-              y = Path.STATUS.copied,
-              untracked = false,
+              status_code = {
+                x = Path.STATUS.unmodified,
+                y = Path.STATUS.copied,
+              },
             },
           }
           assert.are_same(expected, paths)
@@ -282,9 +295,10 @@ describe('parse.lua', function()
             {
               path = 'file.txt',
               orig_path = nil,
-              x = Path.STATUS.updated_but_unmerged,
-              y = Path.STATUS.unmodified,
-              untracked = false,
+              status_code = {
+                x = Path.STATUS.updated_but_unmerged,
+                y = Path.STATUS.unmodified,
+              },
             },
           }
           assert.are_same(expected, paths)
@@ -297,9 +311,10 @@ describe('parse.lua', function()
             {
               path = 'file.txt',
               orig_path = nil,
-              x = Path.STATUS.unmodified,
-              y = Path.STATUS.updated_but_unmerged,
-              untracked = false,
+              status_code = {
+                x = Path.STATUS.unmodified,
+                y = Path.STATUS.updated_but_unmerged,
+              },
             },
           }
           assert.are_same(expected, paths)
@@ -313,9 +328,7 @@ describe('parse.lua', function()
           {
             path = 'a path with spaces.txt',
             orig_path = nil,
-            x = nil,
-            y = nil,
-            untracked = true,
+            status_code = nil,
           },
         }
         assert.are_same(expected, paths)
@@ -329,23 +342,26 @@ describe('parse.lua', function()
         {
           path = 'a.txt',
           orig_path = nil,
-          x = Path.STATUS.modified,
-          y = Path.STATUS.modified,
-          untracked = false,
+          status_code = {
+            x = Path.STATUS.modified,
+            y = Path.STATUS.modified,
+          },
         },
         {
           path = 'b.txt',
           orig_path = nil,
-          x = Path.STATUS.added,
-          y = Path.STATUS.deleted,
-          untracked = false,
+          status_code = {
+            x = Path.STATUS.added,
+            y = Path.STATUS.deleted,
+          },
         },
         {
           path = 'd.txt',
           orig_path = 'c.txt',
-          x = Path.STATUS.renamed,
-          y = Path.STATUS.file_type_changed,
-          untracked = false,
+          status_code = {
+            x = Path.STATUS.renamed,
+            y = Path.STATUS.file_type_changed,
+          },
         },
       }
       assert.are_same(expected, paths)

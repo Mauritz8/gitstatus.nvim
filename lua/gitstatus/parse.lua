@@ -80,11 +80,21 @@ local function line_to_path(line)
     }
   end
 
+  local unmerged = line:sub(1, 2) == 'DD'
+    or line:sub(1, 2) == 'AU'
+    or line:sub(1, 2) == 'UD'
+    or line:sub(1, 2) == 'UA'
+    or line:sub(1, 2) == 'DU'
+    or line:sub(1, 2) == 'AA'
+    or line:sub(1, 2) == 'UU'
+    or false
+
   ---@type Path
   return {
     path = path,
     orig_path = orig_path,
     status_code = status_code,
+    unmerged = unmerged,
   }
 end
 

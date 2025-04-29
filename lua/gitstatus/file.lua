@@ -5,8 +5,9 @@ local M = {}
 ---@enum STATE
 M.STATE = {
   staged = 0,
-  not_staged = 1,
-  untracked = 2,
+  unmerged = 1,
+  not_staged = 2,
+  untracked = 3,
 }
 
 ---@enum EDIT_TYPE
@@ -17,6 +18,13 @@ M.EDIT_TYPE = {
   deleted = 3,
   renamed = 4,
   copied = 5,
+  both_deleted = 6,
+  added_by_us = 7,
+  deleted_by_them = 8,
+  added_by_them = 9,
+  deleted_by_us = 10,
+  both_added = 11,
+  both_modified = 12,
 }
 
 ---@class File
@@ -38,9 +46,6 @@ end
 ---@param status STATUS
 ---@return EDIT_TYPE?
 local function path_status_to_edit_type(status)
-  assert(status ~= Path.STATUS.unmodified)
-  -- TODO: How to handle merge states that are not supported yet?
-  assert(status ~= Path.STATUS.updated_but_unmerged)
   return status == Path.STATUS.modified and M.EDIT_TYPE.modified
     or status == Path.STATUS.file_type_changed and M.EDIT_TYPE.file_type_changed
     or status == Path.STATUS.added and M.EDIT_TYPE.added
@@ -50,24 +55,78 @@ local function path_status_to_edit_type(status)
     or nil
 end
 
+---@param status_code StatusCode
+---@return EDIT_TYPE?
+local function unmerged_path_edit_type(status_code)
+  if
+    status_code.x == Path.STATUS.deleted
+    and status_code.y == Path.STATUS.deleted
+  then
+    return M.EDIT_TYPE.both_deleted
+  elseif
+    status_code.x == Path.STATUS.added
+    and status_code.y == Path.STATUS.updated_but_unmerged
+  then
+    return M.EDIT_TYPE.added_by_us
+  elseif
+    status_code.x == Path.STATUS.updated_but_unmerged
+    and status_code.y == Path.STATUS.deleted
+  then
+    return M.EDIT_TYPE.deleted_by_them
+  elseif
+    status_code.x == Path.STATUS.updated_but_unmerged
+    and status_code.y == Path.STATUS.added
+  then
+    return M.EDIT_TYPE.added_by_them
+  elseif
+    status_code.x == Path.STATUS.deleted
+    and status_code.y == Path.STATUS.updated_but_unmerged
+  then
+    return M.EDIT_TYPE.deleted_by_us
+  elseif
+    status_code.x == Path.STATUS.added
+    and status_code.y == Path.STATUS.added
+  then
+    return M.EDIT_TYPE.both_added
+  elseif
+    status_code.x == Path.STATUS.updated_but_unmerged
+    and status_code.y == Path.STATUS.updated_but_unmerged
+  then
+    return M.EDIT_TYPE.both_modified
+  else
+    return nil
+  end
+end
+
 ---@param path Path
 ---@return File[]
 local function path_to_files(path)
-  ---@type File[]
-  local files = {}
-
   if path.status_code == nil then
-    ---@type File
-    local file = {
-      path = path.path,
-      orig_path = path.orig_path,
-      state = M.STATE.untracked,
-      type = nil,
+    ---@type File[]
+    return {
+      {
+        path = path.path,
+        orig_path = path.orig_path,
+        state = M.STATE.untracked,
+        type = nil,
+      },
     }
-    table.insert(files, file)
-    return files
   end
 
+  if path.unmerged then
+    ---@type File[]
+    return {
+      {
+        path = path.path,
+        orig_path = path.orig_path,
+        state = M.STATE.unmerged,
+        type = unmerged_path_edit_type(path.status_code),
+      },
+    }
+  end
+
+  ---@type File[]
+  local files = {}
   if path.status_code.x ~= Path.STATUS.unmodified then
     local orig_path = path.status_code.x == Path.STATUS.renamed
         and path.orig_path

@@ -3,6 +3,23 @@ local File = require('gitstatus.file')
 
 local M = {}
 
+---@param file_state STATE
+---@return string
+local function get_highlight_group(file_state)
+  return file_state == File.STATE.staged and 'staged' or 'not_staged'
+end
+
+---@param files File[]
+---@return File[][]
+local function split_files_by_state(files)
+  ---@type File[][]
+  local split_files = { {}, {}, {}, {} }
+  for _, file in ipairs(files) do
+    table.insert(split_files[file.state + 1], file)
+  end
+  return split_files
+end
+
 ---@param file_edit_type EDIT_TYPE?
 ---@return string
 local function prefix(file_edit_type)
@@ -12,31 +29,24 @@ local function prefix(file_edit_type)
     or file_edit_type == File.EDIT_TYPE.renamed and 'renamed: '
     or file_edit_type == File.EDIT_TYPE.file_type_changed and 'typechange: '
     or file_edit_type == File.EDIT_TYPE.copied and 'copied: '
+    or file_edit_type == File.EDIT_TYPE.both_deleted and 'both deleted: '
+    or file_edit_type == File.EDIT_TYPE.added_by_us and 'added by us: '
+    or file_edit_type == File.EDIT_TYPE.deleted_by_them and 'deleted by them: '
+    or file_edit_type == File.EDIT_TYPE.added_by_them and 'added by them: '
+    or file_edit_type == File.EDIT_TYPE.deleted_by_us and 'deleted by us: '
+    or file_edit_type == File.EDIT_TYPE.both_added and 'both added: '
+    or file_edit_type == File.EDIT_TYPE.both_modified and 'both modified: '
     or ''
 end
 
----@param file_state STATE
+---@param state STATE
 ---@return string
-local function get_highlight_group(file_state)
-  return file_state == File.STATE.staged and 'staged' or 'not_staged'
-end
-
----@param files File[]
----@return File[], File[], File[]
-local function split_files_by_state(files)
-  local staged = {}
-  local not_staged = {}
-  local untracked = {}
-  for _, file in ipairs(files) do
-    if file.state == File.STATE.staged then
-      table.insert(staged, file)
-    elseif file.state == File.STATE.not_staged then
-      table.insert(not_staged, file)
-    elseif file.state == File.STATE.untracked then
-      table.insert(untracked, file)
-    end
-  end
-  return staged, not_staged, untracked
+local function file_state_name(state)
+  return state == File.STATE.staged and 'Staged:'
+    or state == File.STATE.unmerged and 'Unmerged paths:'
+    or state == File.STATE.not_staged and 'Not staged:'
+    or state == File.STATE.untracked and 'Untracked:'
+    or ''
 end
 
 ---@param file File
@@ -103,11 +113,7 @@ function M.format_out_lines(branch, files)
     })
   end
 
-  local staged, not_staged, untracked = split_files_by_state(files)
-  local file_table = { staged, not_staged, untracked }
-  local name = function(i)
-    return i == 1 and 'Staged:' or i == 2 and 'Not staged:' or 'Untracked:'
-  end
+  local file_table = split_files_by_state(files)
   for i, files_of_type in ipairs(file_table) do
     if #files_of_type > 0 then
       table.insert(lines, {
@@ -122,7 +128,7 @@ function M.format_out_lines(branch, files)
       table.insert(lines, {
         parts = {
           {
-            str = name(i),
+            str = file_state_name(i - 1),
             hl_group = nil,
           },
         },
@@ -145,6 +151,16 @@ function M.format_out_lines(branch, files)
   return lines
 end
 
+---@param state STATE
+---@return string
+local function file_state_name_in_commit_msg(state)
+  assert(state ~= File.STATE.unmerged)
+  return state == File.STATE.staged and '# Changes to be commited:'
+    or state == File.STATE.not_staged and '# Changes not staged for commit:'
+    or state == File.STATE.untracked and '# Untracked files:'
+    or ''
+end
+
 ---@param branch string
 ---@param files File[]
 ---@return string[]
@@ -163,17 +179,11 @@ function M.make_commit_init_msg(branch, files)
   table.insert(lines, '#')
   table.insert(lines, '# On branch ' .. branch)
 
-  local staged, not_staged, untracked = split_files_by_state(files)
-  local file_table = { staged, not_staged, untracked }
-  local name = function(i)
-    return i == 1 and '# Changes to be commited:'
-      or i == 2 and '# Changes not staged for commit:'
-      or '# Untracked files:'
-  end
+  local file_table = split_files_by_state(files)
   for i, files_of_type in ipairs(file_table) do
     if #files_of_type > 0 then
       table.insert(lines, '#')
-      table.insert(lines, name(i))
+      table.insert(lines, file_state_name_in_commit_msg(i))
     end
     for _, file in ipairs(files_of_type) do
       table.insert(lines, '#\t' .. file_to_name(file))

@@ -206,6 +206,11 @@ local function open_commit_prompt()
     return
   end
 
+  if Line.unmerged_files(buf_lines) > 0 then
+    warn_msg('Committing is not possible because you have unmerged files.')
+    return
+  end
+
   local status_out, err = git.status()
   if err ~= nil then
     err_msg('Unable to commit: ' .. err)
@@ -221,6 +226,7 @@ local function open_commit_prompt()
   end
   local branch = parse.git_branch(branch_out)
 
+  -- TODO: Change the message if it's a merge after resolving conflicts
   local commit_msg = out_formatter.make_commit_init_msg(branch, files)
 
   vim.api.nvim_cmd({ cmd = 'q' }, {})

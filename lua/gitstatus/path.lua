@@ -21,5 +21,6 @@ M.STATUS = {
 ---@field path string
 ---@field orig_path string?
 ---@field status_code StatusCode?
+---@field unmerged boolean
 
 return M

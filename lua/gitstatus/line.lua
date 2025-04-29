@@ -61,6 +61,18 @@ function M.staged_files(lines)
 end
 
 ---@param lines Line[]
+---@return integer
+function M.unmerged_files(lines)
+  local count = 0
+  for _, line in ipairs(lines) do
+    if line.file and line.file.state == File.STATE.unmerged then
+      count = count + 1
+    end
+  end
+  return count
+end
+
+---@param lines Line[]
 ---@return string[]
 function M.get_lines_strings(lines)
   ---@type string[]

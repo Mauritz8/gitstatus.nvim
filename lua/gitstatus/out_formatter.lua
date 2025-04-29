@@ -183,7 +183,7 @@ function M.make_commit_init_msg(branch, files)
   for i, files_of_type in ipairs(file_table) do
     if #files_of_type > 0 then
       table.insert(lines, '#')
-      table.insert(lines, file_state_name_in_commit_msg(i))
+      table.insert(lines, file_state_name_in_commit_msg(i - 1))
     end
     for _, file in ipairs(files_of_type) do
       table.insert(lines, '#\t' .. file_to_name(file))

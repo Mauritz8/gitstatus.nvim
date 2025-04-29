@@ -183,4 +183,96 @@ function M.make_commit_init_msg(branch, files)
   return lines
 end
 
+---@return Line[]
+function M.make_help_window_msg()
+  ---@type Line[]
+  return {
+    {
+      parts = {
+        {
+          str = 's',
+          hl_group = 'Label',
+        },
+        {
+          str = ' - ',
+          hl_group = '',
+        },
+        {
+          str = 'Stage/unstage the file on the current line',
+          hl_group = 'Function',
+        },
+      },
+      file = nil,
+    },
+    {
+      parts = {
+        {
+          str = 'a',
+          hl_group = 'Label',
+        },
+        {
+          str = ' - ',
+          hl_group = '',
+        },
+        {
+          str = 'Stage all changes',
+          hl_group = 'Function',
+        },
+      },
+      file = nil,
+    },
+    {
+      parts = {
+        {
+          str = 'c',
+          hl_group = 'Label',
+        },
+        {
+          str = ' - ',
+          hl_group = '',
+        },
+        {
+          str = 'Open commit prompt',
+          hl_group = 'Function',
+        },
+      },
+      file = nil,
+    },
+    {
+      parts = {
+        {
+          str = '<CR> (Enter)',
+          hl_group = 'Label',
+        },
+        {
+          str = ' - ',
+          hl_group = '',
+        },
+        {
+          str = 'Open file on the current line',
+          hl_group = 'Function',
+        },
+      },
+      file = nil,
+    },
+    {
+      parts = {
+        {
+          str = 'q',
+          hl_group = 'Label',
+        },
+        {
+          str = ' - ',
+          hl_group = '',
+        },
+        {
+          str = 'Close window',
+          hl_group = 'Function',
+        },
+      },
+      file = nil,
+    },
+  }
+end
+
 return M

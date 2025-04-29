@@ -38,21 +38,6 @@ local function get_new_cursor_row(cursor_file)
   return Line.line_index_of_file(buf_lines, cursor_file) or default
 end
 
----@param lines Line[]
----@return string[]
-local function get_lines_strings(lines)
-  ---@type string[]
-  local strings = {}
-  for _, line in ipairs(lines) do
-    local str = ''
-    for _, part in ipairs(line.parts) do
-      str = str .. part.str
-    end
-    table.insert(strings, str)
-  end
-  return strings
-end
-
 ---@param buf integer
 ---@param namespace integer
 ---@param cursor_file File?
@@ -86,7 +71,7 @@ local function refresh_buffer(
 
   buf_lines = out_formatter.format_out_lines(branch, files)
   vim.api.nvim_set_option_value('modifiable', true, { buf = buf })
-  local lines_strings = get_lines_strings(buf_lines)
+  local lines_strings = Line.get_lines_strings(buf_lines)
   vim.api.nvim_buf_set_lines(buf, 0, -1, true, lines_strings)
   for i, line in ipairs(buf_lines) do
     local pos = 0
@@ -271,95 +256,8 @@ end
 ---@param parent_win_width number
 ---@param parent_win_height number
 local function open_help_window(parent_win_width, parent_win_height)
-  ---@type Line[]
-  local lines = {
-    {
-      parts = {
-        {
-          str = 's',
-          hl_group = 'Label',
-        },
-        {
-          str = ' - ',
-          hl_group = '',
-        },
-        {
-          str = 'Stage/unstage the file on the current line',
-          hl_group = 'Function',
-        },
-      },
-      file = nil,
-    },
-    {
-      parts = {
-        {
-          str = 'a',
-          hl_group = 'Label',
-        },
-        {
-          str = ' - ',
-          hl_group = '',
-        },
-        {
-          str = 'Stage all changes',
-          hl_group = 'Function',
-        },
-      },
-      file = nil,
-    },
-    {
-      parts = {
-        {
-          str = 'c',
-          hl_group = 'Label',
-        },
-        {
-          str = ' - ',
-          hl_group = '',
-        },
-        {
-          str = 'Open commit prompt',
-          hl_group = 'Function',
-        },
-      },
-      file = nil,
-    },
-    {
-      parts = {
-        {
-          str = '<CR> (Enter)',
-          hl_group = 'Label',
-        },
-        {
-          str = ' - ',
-          hl_group = '',
-        },
-        {
-          str = 'Open file on the current line',
-          hl_group = 'Function',
-        },
-      },
-      file = nil,
-    },
-    {
-      parts = {
-        {
-          str = 'q',
-          hl_group = 'Label',
-        },
-        {
-          str = ' - ',
-          hl_group = '',
-        },
-        {
-          str = 'Close window',
-          hl_group = 'Function',
-        },
-      },
-      file = nil,
-    },
-  }
-  local lines_strings = get_lines_strings(lines)
+  local lines = out_formatter.make_help_window_msg()
+  local lines_strings = Line.get_lines_strings(lines)
   local buf = vim.api.nvim_create_buf(true, true)
   vim.api.nvim_buf_set_lines(buf, 0, -1, true, lines_strings)
   local namespace = vim.api.nvim_create_namespace('')
@@ -395,19 +293,16 @@ local function open_help_window(parent_win_width, parent_win_height)
   })
 end
 
-function M.open_status_win()
-  if window ~= nil then
-    vim.api.nvim_set_current_win(window)
-    return
-  end
-
-  local buf = vim.api.nvim_create_buf(true, true)
-  local namespace = vim.api.nvim_create_namespace('')
-  vim.api.nvim_set_hl(namespace, 'staged', { fg = '#26A641' })
-  vim.api.nvim_set_hl(namespace, 'not_staged', { fg = '#D73A49' })
-  local parent_win_width = vim.api.nvim_win_get_width(0)
-  local parent_win_height = vim.api.nvim_win_get_height(0)
-
+---@param buf integer
+---@param namespace integer
+---@param parent_win_width integer
+---@param parent_win_height integer
+local function register_keybindings(
+  buf,
+  namespace,
+  parent_win_width,
+  parent_win_height
+)
   vim.keymap.set('n', 'q', function()
     vim.api.nvim_cmd({ cmd = 'q' }, {})
   end, {
@@ -449,6 +344,22 @@ function M.open_status_win()
     buffer = buf,
     desc = 'Open help window',
   })
+end
+
+function M.open_status_win()
+  if window ~= nil then
+    vim.api.nvim_set_current_win(window)
+    return
+  end
+
+  local buf = vim.api.nvim_create_buf(true, true)
+  local namespace = vim.api.nvim_create_namespace('')
+  vim.api.nvim_set_hl(namespace, 'staged', { fg = '#26A641' })
+  vim.api.nvim_set_hl(namespace, 'not_staged', { fg = '#D73A49' })
+  local parent_win_width = vim.api.nvim_win_get_width(0)
+  local parent_win_height = vim.api.nvim_win_get_height(0)
+
+  register_keybindings(buf, namespace, parent_win_width, parent_win_height)
 
   vim.api.nvim_create_autocmd({ 'QuitPre' }, {
     buffer = buf,

@@ -60,4 +60,19 @@ function M.staged_files(lines)
   return count
 end
 
+---@param lines Line[]
+---@return string[]
+function M.get_lines_strings(lines)
+  ---@type string[]
+  local strings = {}
+  for _, line in ipairs(lines) do
+    local str = ''
+    for _, part in ipairs(line.parts) do
+      str = str .. part.str
+    end
+    table.insert(strings, str)
+  end
+  return strings
+end
+
 return M

@@ -1,6 +1,6 @@
+local File = require('gitstatus.file')
 local Line = require('gitstatus.line')
 local Window = require('gitstatus.window')
-local file = require('gitstatus.file')
 local git = require('gitstatus.git')
 local out_formatter = require('gitstatus.out_formatter')
 local parse = require('gitstatus.parse')
@@ -59,7 +59,7 @@ local function refresh_buffer(
     return
   end
   local paths = parse.git_status(status_out)
-  local files = file.paths_to_files(paths)
+  local files = File.paths_to_files(paths)
 
   local branch_out, err2 = git.branch()
   if err2 ~= nil then
@@ -98,6 +98,17 @@ local function refresh_buffer(
   vim.api.nvim_win_set_cursor(0, { get_new_cursor_row(cursor_file), col })
 end
 
+---@param file File
+---@return fun(file: string): string?
+local function get_toggle_stage_file_func(file)
+  if file.state == File.STATE.staged then
+    return file.type == File.EDIT_TYPE.added and git.unstage_added_file
+      or git.unstage_modified_file
+  else
+    return git.stage_file
+  end
+end
+
 ---@param buf integer
 ---@param namespace integer
 ---@param parent_win_width number
@@ -115,9 +126,7 @@ local function toggle_stage_file(
     return
   end
 
-  local toggle_stage_file_func = line.file.state == file.STATE.staged
-      and git.unstage_file
-    or git.stage_file
+  local toggle_stage_file_func = get_toggle_stage_file_func(line.file)
   local err = toggle_stage_file_func(line.file.path)
   if err ~= nil then
     err_msg(err)
@@ -217,7 +226,7 @@ local function open_commit_prompt()
     return
   end
   local paths = parse.git_status(status_out)
-  local files = file.paths_to_files(paths)
+  local files = File.paths_to_files(paths)
 
   local branch_out, err2 = git.branch()
   if err2 ~= nil then

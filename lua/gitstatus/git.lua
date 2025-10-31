@@ -33,8 +33,21 @@ end
 
 ---@param file string
 ---@return string?
-function M.unstage_file(file)
-  local obj = vim.system({ 'git', 'reset', '--', file }, { text = true }):wait()
+function M.unstage_modified_file(file)
+  local obj = vim
+    .system({ 'git', 'restore', '--staged', file }, { text = true })
+    :wait()
+  if obj.code ~= 0 then
+    return 'Unable to unstage file: ' .. obj.stderr
+  end
+end
+
+---@param file string
+---@return string?
+function M.unstage_added_file(file)
+  local obj = vim
+    .system({ 'git', 'rm', '--cached', file }, { text = true })
+    :wait()
   if obj.code ~= 0 then
     return 'Unable to unstage file: ' .. obj.stderr
   end

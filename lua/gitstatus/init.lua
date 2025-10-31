@@ -376,6 +376,7 @@ function M.open_status_win()
   end
 
   local buf = vim.api.nvim_create_buf(true, true)
+  vim.api.nvim_buf_set_name(buf, 'gitstatus.nvim')
   local namespace = vim.api.nvim_create_namespace('')
   vim.api.nvim_set_hl(namespace, 'staged', { fg = '#26A641' })
   vim.api.nvim_set_hl(namespace, 'not_staged', { fg = '#D73A49' })
@@ -388,6 +389,7 @@ function M.open_status_win()
     buffer = buf,
     once = true,
     callback = function()
+      vim.api.nvim_buf_delete(buf, {})
       window = nil
     end,
   })

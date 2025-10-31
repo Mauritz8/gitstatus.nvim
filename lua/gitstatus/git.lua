@@ -23,19 +23,23 @@ function M.branch()
 end
 
 ---@param file string
+---@param cwd string
 ---@return string?
-function M.stage_file(file)
-  local obj = vim.system({ 'git', 'add', file }, { text = true }):wait()
+function M.stage_file(file, cwd)
+  local obj = vim
+    .system({ 'git', 'add', file }, { text = true, cwd = cwd })
+    :wait()
   if obj.code ~= 0 then
     return 'Unable to stage file: ' .. obj.stderr
   end
 end
 
 ---@param file string
+---@param cwd string
 ---@return string?
-function M.unstage_modified_file(file)
+function M.unstage_modified_file(file, cwd)
   local obj = vim
-    .system({ 'git', 'restore', '--staged', file }, { text = true })
+    .system({ 'git', 'restore', '--staged', file }, { text = true, cwd = cwd })
     :wait()
   if obj.code ~= 0 then
     return 'Unable to unstage file: ' .. obj.stderr
@@ -43,10 +47,11 @@ function M.unstage_modified_file(file)
 end
 
 ---@param file string
+---@param cwd string
 ---@return string?
-function M.unstage_added_file(file)
+function M.unstage_added_file(file, cwd)
   local obj = vim
-    .system({ 'git', 'rm', '--cached', file }, { text = true })
+    .system({ 'git', 'rm', '--cached', file }, { text = true, cwd = cwd })
     :wait()
   if obj.code ~= 0 then
     return 'Unable to unstage file: ' .. obj.stderr
@@ -75,6 +80,17 @@ function M.commit(msg)
   else
     return obj.stdout, nil
   end
+end
+
+---@return string, string?
+function M.repo_root_dir()
+  local obj = vim
+    .system({ 'git', 'rev-parse', '--show-toplevel' }, { text = true })
+    :wait()
+  if obj.code ~= 0 then
+    return '', 'Unable to get git repo root dir: ' .. obj.stderr
+  end
+  return obj.stdout, nil
 end
 
 return M

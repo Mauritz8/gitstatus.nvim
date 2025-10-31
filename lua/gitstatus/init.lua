@@ -99,7 +99,7 @@ local function refresh_buffer(
 end
 
 ---@param file File
----@return fun(file: string): string?
+---@return fun(file: string, cwd: string): string?
 local function get_toggle_stage_file_func(file)
   if file.state == File.STATE.staged then
     return file.type == File.EDIT_TYPE.added and git.unstage_added_file
@@ -126,14 +126,21 @@ local function toggle_stage_file(
     return
   end
 
+  local git_repo_root_dir_out, err = git.repo_root_dir()
+  if err ~= nil then
+    err_msg('Unable to stage/unstage file: ' .. err)
+    return
+  end
+  local git_repo_root_dir = parse.git_repo_root_dir(git_repo_root_dir_out)
+
   local toggle_stage_file_func = get_toggle_stage_file_func(line.file)
-  local err = toggle_stage_file_func(line.file.path)
+  err = toggle_stage_file_func(line.file.path, git_repo_root_dir)
   if err ~= nil then
     err_msg(err)
     return
   end
   if line.file.orig_path ~= nil then
-    err = toggle_stage_file_func(line.file.orig_path)
+    err = toggle_stage_file_func(line.file.orig_path, git_repo_root_dir)
     if err ~= nil then
       err_msg(err)
       return

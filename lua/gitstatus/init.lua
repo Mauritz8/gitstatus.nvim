@@ -271,6 +271,7 @@ local function open_commit_prompt()
         echo_msg('Commit successful!')
         echo_msg(success_message)
       end
+      vim.api.nvim_buf_delete(ev.buf, {})
     end,
   })
 end

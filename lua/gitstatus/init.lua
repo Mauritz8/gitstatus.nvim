@@ -200,7 +200,7 @@ local function open_file()
   -- https://github.com/Mauritz8/gitstatus.nvim/issues/40
   -- vim.print(vim.api.nvim_buf_get_name(0))
   --  if name ~= current_buffer exec following command
-  vim.api.nvim_cmd({ cmd = 'e', args = { line.file.path } }, {})
+  vim.api.nvim_cmd({ cmd = 'buffer', args = { line.file.path } }, {})
 end
 
 ---@param lines string[]

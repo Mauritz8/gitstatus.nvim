@@ -1,4 +1,5 @@
 local Path = require('gitstatus.path')
+local StringUtils = require('gitstatus.string_utils')
 
 local M = {}
 
@@ -32,6 +33,27 @@ M.EDIT_TYPE = {
 ---@field orig_path string?
 ---@field state STATE
 ---@field type? EDIT_TYPE
+
+---@param filepath string
+---@return string
+function M.filename(filepath)
+  local parts = StringUtils.split(filepath, '/')
+  return parts[#parts]
+end
+
+---@param filename string
+---@return string?
+function M.fileExtension(filename)
+  local parts = StringUtils.split(filename, '%.')
+  if #parts < 2 then
+    return nil
+  end
+  local is_hidden_file_without_file_extension = #parts == 2 and parts[1] == ''
+  if is_hidden_file_without_file_extension then
+    return nil
+  end
+  return parts[#parts]
+end
 
 ---@param file1 File
 ---@param file2 File

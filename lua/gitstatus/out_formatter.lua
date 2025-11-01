@@ -145,6 +145,19 @@ function M.format_out_lines(branch, files)
         },
         file = file,
       }
+
+      local success, result = pcall(require, 'nvim-web-devicons')
+      if success then
+        local nvim_web_devicons = result
+        local filename = File.filename(file.path)
+        local icon, hl_group = nvim_web_devicons.get_icon(
+          filename,
+          File.fileExtension(filename),
+          { default = true }
+        )
+        local icon_part = { str = ' ' .. icon, hl_group = hl_group }
+        table.insert(line.parts, icon_part)
+      end
       table.insert(lines, line)
     end
   end

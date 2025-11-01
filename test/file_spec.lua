@@ -2,6 +2,40 @@ local Path = require('gitstatus.path')
 local file = require('gitstatus.file')
 
 describe('file.lua', function()
+  describe('filename', function()
+    it('in root directory', function()
+      local filepath = 'main.py'
+      local filename = file.filename(filepath)
+      assert.equal('main.py', filename)
+    end)
+    it('in subdirectory', function()
+      local filepath = 'src/module/main.py'
+      local filename = file.filename(filepath)
+      assert.equal('main.py', filename)
+    end)
+  end)
+  describe('fileExtension', function()
+    it('typical filename', function()
+      local filepath = 'main.py'
+      local fileExtension = file.fileExtension(filepath)
+      assert.equal('py', fileExtension)
+    end)
+    it('filename without a file extension', function()
+      local filepath = 'bashrc'
+      local fileExtension = file.fileExtension(filepath)
+      assert.equal(nil, fileExtension)
+    end)
+    it('hidden filename without a file extension', function()
+      local filepath = '.bashrc'
+      local fileExtension = file.fileExtension(filepath)
+      assert.equal(nil, fileExtension)
+    end)
+    it('hidden filename with a file extension', function()
+      local filepath = '.luarc.json'
+      local fileExtension = file.fileExtension(filepath)
+      assert.equal('json', fileExtension)
+    end)
+  end)
   describe('paths_to_files', function()
     it('changed in index', function()
       ---@type Path[]

@@ -201,7 +201,9 @@ local function open_file()
   end
 
   vim.api.nvim_cmd({ cmd = 'q' }, {})
-  vim.api.nvim_cmd({ cmd = 'buffer', args = { line.file.path } }, {})
+  local open_file_cmd = vim.fn.bufexists(line.file.path) == 1 and 'buffer'
+    or 'e'
+  vim.api.nvim_cmd({ cmd = open_file_cmd, args = { line.file.path } }, {})
 end
 
 ---@param lines string[]

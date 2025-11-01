@@ -133,7 +133,11 @@ describe('out_formatter.lua', function()
         {
           parts = {
             {
-              str = 'modified: file1.txt',
+              str = 'modified: ',
+              hl_group = 'staged',
+            },
+            {
+              str = 'file1.txt',
               hl_group = 'staged',
             },
           },
@@ -142,7 +146,11 @@ describe('out_formatter.lua', function()
         {
           parts = {
             {
-              str = 'renamed: file4.txt -> file5.txt',
+              str = 'renamed: ',
+              hl_group = 'staged',
+            },
+            {
+              str = 'file4.txt -> file5.txt',
               hl_group = 'staged',
             },
           },
@@ -169,7 +177,11 @@ describe('out_formatter.lua', function()
         {
           parts = {
             {
-              str = 'deleted: file2.txt',
+              str = 'deleted: ',
+              hl_group = 'not_staged',
+            },
+            {
+              str = 'file2.txt',
               hl_group = 'not_staged',
             },
           },
@@ -195,6 +207,10 @@ describe('out_formatter.lua', function()
         },
         {
           parts = {
+            {
+              str = '',
+              hl_group = 'not_staged',
+            },
             {
               str = 'file3.txt',
               hl_group = 'not_staged',

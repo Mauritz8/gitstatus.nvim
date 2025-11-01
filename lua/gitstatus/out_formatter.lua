@@ -53,19 +53,18 @@ end
 ---@return string
 local function file_to_name(file)
   if file.orig_path ~= nil then
-    return prefix(file.type) .. file.orig_path .. ' -> ' .. file.path
+    return file.orig_path .. ' -> ' .. file.path
   end
-  return prefix(file.type) .. file.path
+  return file.path
 end
 
 ---@return (fun(filepath: string): icon: string, hl_group: string) | nil
 local function get_icon_provider()
-  local nvim_web_devicons_exists, nvim_web_devicons =
-    pcall(require, 'nvim-web-devicons')
-  if nvim_web_devicons_exists then
+  local devicons_exists, devicons = pcall(require, 'nvim-web-devicons')
+  if devicons_exists then
     return function(filepath)
       local filename = File.filename(filepath)
-      return nvim_web_devicons.get_icon(
+      return devicons.get_icon(
         filename,
         File.file_extension(filename),
         { default = true }
@@ -164,21 +163,33 @@ function M.format_out_lines(branch, files)
       })
     end
     for _, file in ipairs(files_of_type) do
+      ---@type Line
       local line = {
-        parts = {
-          {
-            str = file_to_name(file),
-            hl_group = get_highlight_group(file.state),
-          },
-        },
+        parts = {},
         file = file,
       }
 
+      ---@type LinePart
+      local part0 = {
+        str = prefix(file.type),
+        hl_group = get_highlight_group(file.state),
+      }
+      table.insert(line.parts, part0)
+
+      ---@type LinePart
+      local part1 = {
+        str = file_to_name(file),
+        hl_group = get_highlight_group(file.state),
+      }
+      table.insert(line.parts, part1)
+
       if icon_provider ~= nil then
         local icon, hl_group = icon_provider(file.path)
+        ---@type LinePart
         local icon_part = { str = ' ' .. icon, hl_group = hl_group }
         table.insert(line.parts, icon_part)
       end
+
       table.insert(lines, line)
     end
   end

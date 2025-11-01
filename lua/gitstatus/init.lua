@@ -383,6 +383,7 @@ function M.open_status_win()
   local buf = vim.api.nvim_create_buf(true, true)
   vim.api.nvim_buf_set_name(buf, 'gitstatus.nvim')
   local namespace = vim.api.nvim_create_namespace('')
+  -- TODO: prefix my own plugin highlight groups to avoid conflicts
   vim.api.nvim_set_hl(namespace, 'staged', { fg = '#26A641' })
   vim.api.nvim_set_hl(namespace, 'not_staged', { fg = '#D73A49' })
   local parent_win_width = vim.api.nvim_win_get_width(0)

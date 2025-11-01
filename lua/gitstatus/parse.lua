@@ -125,10 +125,15 @@ function M.git_status(status_output)
 end
 
 ---@param branch_output string
----@return string
+---@return string, string?
 function M.git_branch(branch_output)
-  local branch, _ = branch_output:gsub('\n', '')
-  return branch
+  local lines = split(branch_output, '\n')
+  for _, line in ipairs(lines) do
+    if line:sub(1, 1) == '*' then
+      return line:sub(3)
+    end
+  end
+  return '', 'Unable to retrieve the current branch'
 end
 
 ---@param git_repo_root_dir_output string

@@ -67,7 +67,12 @@ local function refresh_buffer(
     vim.api.nvim_cmd({ cmd = 'q' }, {})
     return
   end
-  local branch = parse.git_branch(branch_out)
+  local branch, err3 = parse.git_branch(branch_out)
+  if err3 ~= nil then
+    err_msg(err3)
+    vim.api.nvim_cmd({ cmd = 'q' }, {})
+    return
+  end
 
   buf_lines = out_formatter.format_out_lines(branch, files)
   vim.api.nvim_set_option_value('modifiable', true, { buf = buf })
@@ -196,10 +201,6 @@ local function open_file()
   end
 
   vim.api.nvim_cmd({ cmd = 'q' }, {})
-  -- TODO: Only open file if it's not already open
-  -- https://github.com/Mauritz8/gitstatus.nvim/issues/40
-  -- vim.print(vim.api.nvim_buf_get_name(0))
-  --  if name ~= current_buffer exec following command
   vim.api.nvim_cmd({ cmd = 'buffer', args = { line.file.path } }, {})
 end
 
@@ -240,7 +241,11 @@ local function open_commit_prompt()
     err_msg('Unable to commit: ' .. err2)
     return
   end
-  local branch = parse.git_branch(branch_out)
+  local branch, err3 = parse.git_branch(branch_out)
+  if err3 ~= nil then
+    err_msg('Unable to commit: ' .. err3)
+    return
+  end
 
   -- TODO: Change the message if it's a merge after resolving conflicts
   local commit_msg = out_formatter.make_commit_init_msg(branch, files)
@@ -264,9 +269,9 @@ local function open_commit_prompt()
       end
       local lines = vim.api.nvim_buf_get_lines(ev.buf, 0, -1, true)
       local msg = filter_out_lines_with_comment(lines)
-      local success_message, err3 = git.commit(msg)
-      if err3 ~= nil then
-        err_msg(err3)
+      local success_message, err4 = git.commit(msg)
+      if err4 ~= nil then
+        err_msg(err4)
       else
         echo_msg('Commit successful!')
         echo_msg(success_message)

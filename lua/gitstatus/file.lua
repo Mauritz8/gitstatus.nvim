@@ -43,7 +43,7 @@ end
 
 ---@param filename string
 ---@return string?
-function M.fileExtension(filename)
+function M.file_extension(filename)
   local parts = StringUtils.split(filename, '%.')
   if #parts < 2 then
     return nil

@@ -58,6 +58,33 @@ local function file_to_name(file)
   return prefix(file.type) .. file.path
 end
 
+---@return (fun(filepath: string): icon: string, hl_group: string) | nil
+local function get_icon_provider()
+  local nvim_web_devicons_exists, nvim_web_devicons =
+    pcall(require, 'nvim-web-devicons')
+  if nvim_web_devicons_exists then
+    return function(filepath)
+      local filename = File.filename(filepath)
+      return nvim_web_devicons.get_icon(
+        filename,
+        File.file_extension(filename),
+        { default = true }
+      )
+    end
+  end
+
+  local mini_icons_exists, mini_icons = pcall(require, 'mini.icons')
+  if mini_icons_exists then
+    return function(filepath)
+      local filename = File.filename(filepath)
+      local file_extension = File.file_extension(filename)
+      return mini_icons.get('filetype', file_extension)
+    end
+  end
+
+  return nil
+end
+
 ---@param branch string
 ---@param files File[]
 ---@return Line[]
@@ -113,6 +140,7 @@ function M.format_out_lines(branch, files)
     })
   end
 
+  local icon_provider = get_icon_provider()
   local file_table = split_files_by_state(files)
   for i, files_of_type in ipairs(file_table) do
     if #files_of_type > 0 then
@@ -146,15 +174,8 @@ function M.format_out_lines(branch, files)
         file = file,
       }
 
-      local success, result = pcall(require, 'nvim-web-devicons')
-      if success then
-        local nvim_web_devicons = result
-        local filename = File.filename(file.path)
-        local icon, hl_group = nvim_web_devicons.get_icon(
-          filename,
-          File.fileExtension(filename),
-          { default = true }
-        )
+      if icon_provider ~= nil then
+        local icon, hl_group = icon_provider(file.path)
         local icon_part = { str = ' ' .. icon, hl_group = hl_group }
         table.insert(line.parts, icon_part)
       end

@@ -228,8 +228,9 @@ local function open_commit_prompt(
     border = { '╔', '═', '╗', '║', '╝', '═', '╚', '║' },
   })
   vim.api.nvim_win_set_cursor(0, { 1, 0 })
+  vim.api.nvim_cmd({ cmd = 'w' }, {})
 
-  vim.api.nvim_create_autocmd({ 'BufWritePost' }, {
+  vim.api.nvim_create_autocmd({ 'QuitPre' }, {
     buffer = buf,
     callback = function(ev)
       local commit_msg_file = vim.api.nvim_buf_get_name(ev.buf)
@@ -239,23 +240,12 @@ local function open_commit_prompt(
       else
         vim.notify('Commit successful!', vim.log.levels.INFO)
       end
-    end,
-  })
 
-  vim.api.nvim_create_autocmd({ 'QuitPre' }, {
-    buffer = buf,
-    callback = function(ev)
-      local unsaved_changes = vim.opt.modified:get()
-      if unsaved_changes then
-        vim.notify('Aborting commit: commit message not saved', vim.log.levels.WARN)
-      end
-
-      local buf_name = vim.api.nvim_buf_get_name(ev.buf)
       vim.api.nvim_buf_delete(ev.buf, { force = true })
-      local file_exists = vim.system({ 'test', '-e', buf_name }):wait().code
-        == 0
+      local file_exists = vim.system({ 'test', '-e', commit_msg_file }):wait()
+        .code == 0
       if file_exists then
-        vim.system({ 'rm', buf_name })
+        vim.system({ 'rm', commit_msg_file })
       end
 
       refresh_buffer(

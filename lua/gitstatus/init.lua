@@ -206,20 +206,9 @@ local function open_file()
   vim.api.nvim_cmd({ cmd = open_file_cmd, args = { line.file.path } }, {})
 end
 
----@param lines string[]
----@return string[]
-local function filter_out_lines_with_comment(lines)
-  ---@type Line[]
-  local new_lines = {}
-  for _, line in ipairs(lines) do
-    if line:sub(1, 1) ~= '#' then
-      table.insert(new_lines, line)
-    end
-  end
-  return new_lines
-end
-
-local function open_commit_prompt()
+---@param parent_win_width number
+---@param parent_win_height number
+local function open_commit_prompt(parent_win_width, parent_win_height)
   if Line.staged_files(buf_lines) == 0 then
     warn_msg('Unable to commit: no staged files')
     return
@@ -230,55 +219,53 @@ local function open_commit_prompt()
     return
   end
 
-  local status_out, err = git.status()
-  if err ~= nil then
-    err_msg('Unable to commit: ' .. err)
-    return
-  end
-  local paths = parse.git_status(status_out)
-  local files = File.paths_to_files(paths)
+  local buf = vim.api.nvim_create_buf(true, false)
+  vim.api.nvim_buf_set_name(buf, '.git-commit-tmp')
+  local help_msg = out_formatter.make_commit_init_msg()
+  vim.api.nvim_buf_set_lines(buf, 0, -1, true, help_msg)
 
-  local branch_out, err2 = git.branch()
-  if err2 ~= nil then
-    err_msg('Unable to commit: ' .. err2)
-    return
-  end
-  local branch, err3 = parse.git_branch(branch_out)
-  if err3 ~= nil then
-    err_msg('Unable to commit: ' .. err3)
-    return
-  end
-
-  -- TODO: Change the message if it's a merge after resolving conflicts
-  local commit_msg = out_formatter.make_commit_init_msg(branch, files)
-
-  vim.api.nvim_cmd({ cmd = 'q' }, {})
-  local git_commit_file = '.git/COMMIT_EDITMSG'
-  vim.api.nvim_cmd({ cmd = 'new', args = { git_commit_file } }, {})
-
-  vim.api.nvim_buf_set_lines(0, 0, -1, true, commit_msg)
+  local width = 100
+  local height = 10
+  vim.api.nvim_open_win(buf, true, {
+    relative = 'editor',
+    width = width,
+    height = height,
+    row = Window.row(parent_win_height, height),
+    col = Window.column(parent_win_width, width),
+    title = 'Git commit',
+    border = { '╔', '═', '╗', '║', '╝', '═', '╚', '║' },
+  })
   vim.api.nvim_win_set_cursor(0, { 1, 0 })
 
-  vim.api.nvim_create_autocmd({ 'QuitPre' }, {
-    pattern = { git_commit_file },
-    once = true,
+  vim.api.nvim_create_autocmd({ 'BufWritePost' }, {
+    buffer = buf,
     callback = function(ev)
-      local file_saved = not vim.opt.modified:get()
-      if not file_saved then
-        vim.api.nvim_buf_delete(ev.buf, { force = true })
-        echo_msg('Aborting commit: commit message not saved')
-        return
-      end
-      local lines = vim.api.nvim_buf_get_lines(ev.buf, 0, -1, true)
-      local msg = filter_out_lines_with_comment(lines)
-      local success_message, err4 = git.commit(msg)
+      local commit_msg = vim.api.nvim_buf_get_lines(ev.buf, 0, -1, true)
+      local success_message, err4 = git.commit(commit_msg)
       if err4 ~= nil then
         err_msg(err4)
       else
         echo_msg('Commit successful!')
         echo_msg(success_message)
       end
-      vim.api.nvim_buf_delete(ev.buf, {})
+    end,
+  })
+
+  vim.api.nvim_create_autocmd({ 'QuitPre' }, {
+    buffer = buf,
+    callback = function(ev)
+      local unsaved_changes = vim.opt.modified:get()
+      if unsaved_changes then
+        echo_msg('Aborting commit: commit message not saved')
+      end
+
+      local buf_name = vim.api.nvim_buf_get_name(ev.buf)
+      vim.api.nvim_buf_delete(ev.buf, { force = true })
+      local file_exists = vim.system({ 'test', '-e', buf_name }):wait().code
+        == 0
+      if file_exists then
+        vim.system({ 'rm', buf_name })
+      end
     end,
   })
 end
@@ -364,7 +351,9 @@ local function register_keybindings(
     buffer = buf,
     desc = 'Open file',
   })
-  vim.keymap.set('n', 'c', open_commit_prompt, {
+  vim.keymap.set('n', 'c', function()
+    open_commit_prompt(parent_win_width, parent_win_height)
+  end, {
     buffer = buf,
     desc = 'Open commit prompt',
   })

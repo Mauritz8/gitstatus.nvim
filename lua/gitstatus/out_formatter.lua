@@ -196,45 +196,11 @@ function M.format_out_lines(branch, files)
   return lines
 end
 
----@param state STATE
----@return string
-local function file_state_name_in_commit_msg(state)
-  assert(state ~= File.STATE.unmerged)
-  return state == File.STATE.staged and '# Changes to be commited:'
-    or state == File.STATE.not_staged and '# Changes not staged for commit:'
-    or state == File.STATE.untracked and '# Untracked files:'
-    or ''
-end
-
----@param branch string
----@param files File[]
+-- TODO: the message should explain to use save and quit (:wq) to commit and to abort a commit by using :q
 ---@return string[]
-function M.make_commit_init_msg(branch, files)
+function M.make_commit_init_msg()
   ---@type string[]
   local lines = {}
-  table.insert(lines, '')
-  table.insert(
-    lines,
-    '# Please enter the commit message for your changes. Lines starting'
-  )
-  table.insert(
-    lines,
-    "# with '#' will be ignored, and an empty message aborts the commit."
-  )
-  table.insert(lines, '#')
-  table.insert(lines, '# On branch ' .. branch)
-
-  local file_table = split_files_by_state(files)
-  for i, files_of_type in ipairs(file_table) do
-    if #files_of_type > 0 then
-      table.insert(lines, '#')
-      table.insert(lines, file_state_name_in_commit_msg(i - 1))
-    end
-    for _, file in ipairs(files_of_type) do
-      table.insert(lines, '#\t' .. file_to_name(file))
-    end
-  end
-  table.insert(lines, '#')
   return lines
 end
 

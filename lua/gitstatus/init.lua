@@ -13,21 +13,6 @@ local buf_lines = {}
 ---@type integer?
 local window = nil
 
----@param msg string
-local function echo_msg(msg)
-  vim.api.nvim_echo({ { msg } }, false, {})
-end
-
----@param msg string
-local function err_msg(msg)
-  vim.api.nvim_echo({ { msg, 'ErrorMsg' } }, false, {})
-end
-
----@param msg string
-local function warn_msg(msg)
-  vim.api.nvim_echo({ { msg, 'WarningMsg' } }, false, {})
-end
-
 ---@param cursor_file File?
 ---@return integer
 local function get_new_cursor_row(cursor_file)
@@ -54,7 +39,7 @@ local function refresh_buffer(
 
   local status_out, err = git.status()
   if err ~= nil then
-    err_msg(err)
+    vim.notify(err, vim.log.levels.ERROR)
     vim.api.nvim_cmd({ cmd = 'q' }, {})
     return
   end
@@ -63,13 +48,13 @@ local function refresh_buffer(
 
   local branch_out, err2 = git.branch()
   if err2 ~= nil then
-    err_msg(err2)
+    vim.notify(err2, vim.log.levels.ERROR)
     vim.api.nvim_cmd({ cmd = 'q' }, {})
     return
   end
   local branch, err3 = parse.git_branch(branch_out)
   if err3 ~= nil then
-    err_msg(err3)
+    vim.notify(err3, vim.log.levels.ERROR)
     vim.api.nvim_cmd({ cmd = 'q' }, {})
     return
   end
@@ -127,13 +112,13 @@ local function toggle_stage_file(
   local row = vim.api.nvim_win_get_cursor(0)[1]
   local line = buf_lines[row]
   if line.file == nil then
-    warn_msg('Unable to stage/unstage file: invalid line')
+    vim.notify('Unable to stage/unstage file: invalid line', vim.log.levels.WARN)
     return
   end
 
   local git_repo_root_dir_out, err = git.repo_root_dir()
   if err ~= nil then
-    err_msg('Unable to stage/unstage file: ' .. err)
+    vim.notify(err, vim.log.levels.ERROR)
     return
   end
   local git_repo_root_dir = parse.git_repo_root_dir(git_repo_root_dir_out)
@@ -141,13 +126,13 @@ local function toggle_stage_file(
   local toggle_stage_file_func = get_toggle_stage_file_func(line.file)
   err = toggle_stage_file_func(line.file.path, git_repo_root_dir)
   if err ~= nil then
-    err_msg(err)
+    vim.notify(err, vim.log.levels.ERROR)
     return
   end
   if line.file.orig_path ~= nil then
     err = toggle_stage_file_func(line.file.orig_path, git_repo_root_dir)
     if err ~= nil then
-      err_msg(err)
+      vim.notify(err, vim.log.levels.ERROR)
       return
     end
   end
@@ -196,7 +181,7 @@ local function open_file()
   local row = vim.api.nvim_win_get_cursor(0)[1]
   local line = buf_lines[row]
   if line.file == nil then
-    warn_msg('Unable to open file: invalid line')
+    vim.notify('Unable to open file: invalid line', vim.log.levels.WARN)
     return
   end
 
@@ -217,12 +202,12 @@ local function open_commit_prompt(
   parent_win_height
 )
   if Line.staged_files(buf_lines) == 0 then
-    warn_msg('Unable to commit: no staged files')
+    vim.notify('Unable to commit: no staged files', vim.log.levels.WARN)
     return
   end
 
   if Line.unmerged_files(buf_lines) > 0 then
-    warn_msg('Committing is not possible because you have unmerged files.')
+    vim.notify('Committing is not possible because you have unmerged files.', vim.log.levels.WARN)
     return
   end
 
@@ -248,12 +233,11 @@ local function open_commit_prompt(
     buffer = buf,
     callback = function(ev)
       local commit_msg_file = vim.api.nvim_buf_get_name(ev.buf)
-      local success_message, err4 = git.commit(commit_msg_file)
-      if err4 ~= nil then
-        err_msg(err4)
+      local _, err = git.commit(commit_msg_file)
+      if err ~= nil then
+        vim.notify(err, vim.log.levels.ERROR)
       else
-        echo_msg('Commit successful!')
-        echo_msg(success_message)
+        vim.notify('Commit successful!', vim.log.levels.INFO)
       end
     end,
   })
@@ -263,7 +247,7 @@ local function open_commit_prompt(
     callback = function(ev)
       local unsaved_changes = vim.opt.modified:get()
       if unsaved_changes then
-        echo_msg('Aborting commit: commit message not saved')
+        vim.notify('Aborting commit: commit message not saved', vim.log.levels.WARN)
       end
 
       local buf_name = vim.api.nvim_buf_get_name(ev.buf)
@@ -381,6 +365,11 @@ local function register_keybindings(
 end
 
 function M.open_status_win()
+  local nvim_notify_exists, nvim_notify = pcall(require, 'notify')
+  if nvim_notify_exists then
+    vim.notify = nvim_notify
+  end
+
   if window ~= nil then
     vim.api.nvim_set_current_win(window)
     return

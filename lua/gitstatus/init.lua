@@ -206,9 +206,16 @@ local function open_file()
   vim.api.nvim_cmd({ cmd = open_file_cmd, args = { line.file.path } }, {})
 end
 
+---@param status_win_buf integer
+---@param status_win_namespace integer
 ---@param parent_win_width number
 ---@param parent_win_height number
-local function open_commit_prompt(parent_win_width, parent_win_height)
+local function open_commit_prompt(
+  status_win_buf,
+  status_win_namespace,
+  parent_win_width,
+  parent_win_height
+)
   if Line.staged_files(buf_lines) == 0 then
     warn_msg('Unable to commit: no staged files')
     return
@@ -240,8 +247,8 @@ local function open_commit_prompt(parent_win_width, parent_win_height)
   vim.api.nvim_create_autocmd({ 'BufWritePost' }, {
     buffer = buf,
     callback = function(ev)
-      local commit_msg = vim.api.nvim_buf_get_lines(ev.buf, 0, -1, true)
-      local success_message, err4 = git.commit(commit_msg)
+      local commit_msg_file = vim.api.nvim_buf_get_name(ev.buf)
+      local success_message, err4 = git.commit(commit_msg_file)
       if err4 ~= nil then
         err_msg(err4)
       else
@@ -266,6 +273,14 @@ local function open_commit_prompt(parent_win_width, parent_win_height)
       if file_exists then
         vim.system({ 'rm', buf_name })
       end
+
+      refresh_buffer(
+        status_win_buf,
+        status_win_namespace,
+        nil,
+        parent_win_width,
+        parent_win_height
+      )
     end,
   })
 end
@@ -352,7 +367,7 @@ local function register_keybindings(
     desc = 'Open file',
   })
   vim.keymap.set('n', 'c', function()
-    open_commit_prompt(parent_win_width, parent_win_height)
+    open_commit_prompt(buf, namespace, parent_win_width, parent_win_height)
   end, {
     buffer = buf,
     desc = 'Open commit prompt',

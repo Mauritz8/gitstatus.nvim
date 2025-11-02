@@ -64,15 +64,12 @@ function M.stage_all()
   end
 end
 
----@param msg string[]
+---@param filename string
 ---@return string, string? # success message, error
-function M.commit(msg)
-  local args = { 'git', 'commit' }
-  for _, row in ipairs(msg) do
-    table.insert(args, '-m')
-    table.insert(args, row)
-  end
-  local obj = vim.system(args, { text = true }):wait()
+function M.commit(filename)
+  local obj = vim
+    .system({ 'git', 'commit', '-F', filename }, { text = true })
+    :wait()
   if obj.code ~= 0 then
     return '', 'Commit failed: ' .. obj.stderr
   else

@@ -40,7 +40,7 @@ local function refresh_buffer(
   local status_out, err = git.status()
   if err ~= nil then
     vim.notify(err, vim.log.levels.ERROR)
-    vim.api.nvim_cmd({ cmd = 'q' }, {})
+    vim.cmd.quit()
     return
   end
   local paths = parse.git_status(status_out)
@@ -49,13 +49,13 @@ local function refresh_buffer(
   local branch_out, err2 = git.branch()
   if err2 ~= nil then
     vim.notify(err2, vim.log.levels.ERROR)
-    vim.api.nvim_cmd({ cmd = 'q' }, {})
+    vim.cmd.quit()
     return
   end
   local branch, err3 = parse.git_branch(branch_out)
   if err3 ~= nil then
     vim.notify(err3, vim.log.levels.ERROR)
-    vim.api.nvim_cmd({ cmd = 'q' }, {})
+    vim.cmd.quit()
     return
   end
 
@@ -185,7 +185,7 @@ local function open_file()
     return
   end
 
-  vim.api.nvim_cmd({ cmd = 'q' }, {})
+  vim.cmd.quit()
   local open_file_cmd = vim.fn.bufexists(line.file.path) == 1 and 'buffer'
     or 'e'
   vim.api.nvim_cmd({ cmd = open_file_cmd, args = { line.file.path } }, {})
@@ -211,42 +211,47 @@ local function open_commit_prompt(
     return
   end
 
-  local buf = vim.api.nvim_create_buf(true, false)
-  vim.api.nvim_buf_set_name(buf, '.git-commit-tmp')
-  local help_msg = out_formatter.make_commit_init_msg()
-  vim.api.nvim_buf_set_lines(buf, 0, -1, true, help_msg)
 
-  local width = 100
-  local height = 10
+  local git_repo_root_dir_out, err = git.repo_root_dir()
+  if err ~= nil then
+    vim.notify(err, vim.log.levels.ERROR)
+    return
+  end
+  local git_repo_root_dir = parse.git_repo_root_dir(git_repo_root_dir_out)
+
+  local buf = vim.api.nvim_create_buf(false, false)
+  vim.api.nvim_buf_set_name(buf, git_repo_root_dir .. '/.git/COMMIT_EDITMSG')
+  vim.api.nvim_buf_call(buf, vim.cmd.edit)
+  -- local help_msg = out_formatter.make_commit_init_msg()
+  vim.api.nvim_buf_set_lines(buf, 0, -1, true, {})
+  vim.api.nvim_buf_call(buf, vim.cmd.write)
+
+  local pos = vim.api.nvim_win_get_position(0)
+  local row, col = unpack(pos)
+  local height = 7
   vim.api.nvim_open_win(buf, true, {
     relative = 'editor',
-    width = width,
+    width = vim.api.nvim_win_get_width(0),
     height = height,
-    row = Window.row(parent_win_height, height),
-    col = Window.column(parent_win_width, width),
+    row = row - height - 2,
+    col = col,
     title = 'Git commit',
     border = { '╔', '═', '╗', '║', '╝', '═', '╚', '║' },
   })
   vim.api.nvim_win_set_cursor(0, { 1, 0 })
-  vim.api.nvim_cmd({ cmd = 'w' }, {})
 
   vim.api.nvim_create_autocmd({ 'QuitPre' }, {
     buffer = buf,
     callback = function(ev)
       local commit_msg_file = vim.api.nvim_buf_get_name(ev.buf)
-      local _, err = git.commit(commit_msg_file)
-      if err ~= nil then
-        vim.notify(err, vim.log.levels.ERROR)
+      local _, err2 = git.commit(commit_msg_file)
+      if err2 ~= nil then
+        vim.notify(err2, vim.log.levels.WARN)
       else
         vim.notify('Commit successful!', vim.log.levels.INFO)
       end
 
       vim.api.nvim_buf_delete(ev.buf, { force = true })
-      local file_exists = vim.system({ 'test', '-e', commit_msg_file }):wait()
-        .code == 0
-      if file_exists then
-        vim.system({ 'rm', commit_msg_file })
-      end
 
       refresh_buffer(
         status_win_buf,
@@ -292,7 +297,7 @@ local function open_help_window(parent_win_width, parent_win_height)
   })
 
   vim.keymap.set('n', 'q', function()
-    vim.api.nvim_cmd({ cmd = 'q' }, {})
+    vim.cmd.quit()
   end, {
     buffer = buf,
     desc = 'Quit',
@@ -310,7 +315,7 @@ local function register_keybindings(
   parent_win_height
 )
   vim.keymap.set('n', 'q', function()
-    vim.api.nvim_cmd({ cmd = 'q' }, {})
+    vim.cmd.quit()
   end, {
     buffer = buf,
     desc = 'Quit',

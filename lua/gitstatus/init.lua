@@ -250,6 +250,8 @@ local function open_commit_prompt(
       if err2 ~= nil then
         vim.notify(StringUtils.strip_trailing_newline(err2), vim.log.levels.WARN)
       else
+        -- TODO: clear write to buffer message before displaying the notification
+        -- to avoid the annoying prompt
         vim.notify('Commit successful!', vim.log.levels.INFO)
       end
 

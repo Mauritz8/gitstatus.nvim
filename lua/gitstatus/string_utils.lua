@@ -56,4 +56,16 @@ function M.filter(strings, predicate)
   return new_lines
 end
 
+---@param str string
+---@param max_len integer
+---@return string
+function M.strip_string(str, max_len)
+  if #str > max_len then
+    local stripped_str_prefix = '...'
+    return stripped_str_prefix
+      .. str:sub(#str - max_len + #stripped_str_prefix + 1)
+  end
+  return str
+end
+
 return M

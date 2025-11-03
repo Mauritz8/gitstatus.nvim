@@ -76,11 +76,7 @@ local function refresh_buffer(
   end
   vim.api.nvim_set_option_value('modifiable', false, { buf = buf })
 
-  local numberwidth = vim.api.nvim_get_option_value('numberwidth', {})
-  local optimal_width =
-    Window.width(lines_strings, numberwidth, parent_win_width)
-  local min_width = 80
-  local width = optimal_width < min_width and min_width or optimal_width
+  local width = 80
   local optimal_height = Window.height(lines_strings, parent_win_height)
   local max_height = 15
   local height = optimal_height > max_height and max_height or optimal_height

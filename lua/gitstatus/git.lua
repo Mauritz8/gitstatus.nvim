@@ -73,7 +73,7 @@ function M.commit(filename)
     .system({ 'git', 'commit', '-F', filename }, { text = true })
     :wait()
   if obj.code ~= 0 then
-    return '', 'Commit failed: ' .. obj.stderr
+    return '', obj.stderr
   else
     return obj.stdout, nil
   end

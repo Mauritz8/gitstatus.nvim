@@ -1,5 +1,6 @@
 require('gitstatus.line')
 local File = require('gitstatus.file')
+local StringUtils = require('gitstatus.string_utils')
 
 local M = {}
 
@@ -176,9 +177,11 @@ function M.format_out_lines(branch, files)
       }
       table.insert(line.parts, part0)
 
+      local filename = file_to_name(file)
+      local max_filename_len = 50
       ---@type LinePart
       local part1 = {
-        str = file_to_name(file),
+        str = StringUtils.strip_string(filename, max_filename_len),
         hl_group = get_highlight_group(file.state),
       }
       table.insert(line.parts, part1)

@@ -30,4 +30,21 @@ describe('string_utils.lua', function()
       assert.are_same({ 'a', 'a' }, StringUtils.filter(strings, is_a))
     end)
   end)
+  describe('strip_string', function()
+    it('string smaller than max length', function()
+      local str = 'hello'
+      local max_len = 10
+      assert.are_equal(str, StringUtils.strip_string(str, max_len))
+    end)
+    it('string larger than max length by 1 char', function()
+      local str = 'lorem ipsum'
+      local max_len = 10
+      assert.are_equal('...m ipsum', StringUtils.strip_string(str, max_len))
+    end)
+    it('string larger than max length by many chars', function()
+      local str = 'lorem ipsum dolar sit amet'
+      local max_len = 10
+      assert.are_equal('...it amet', StringUtils.strip_string(str, max_len))
+    end)
+  end)
 end)

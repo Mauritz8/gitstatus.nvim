@@ -26,4 +26,14 @@ function M.split(str, delim)
   return matches
 end
 
+---@param str string
+---@return string
+function M.strip_trailing_newline(str)
+  local len = #str
+  if str:sub(len) == '\n' then
+    return str:sub(1, len - 1)
+  end
+  return str
+end
+
 return M

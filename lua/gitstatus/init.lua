@@ -1,5 +1,6 @@
 local File = require('gitstatus.file')
 local Line = require('gitstatus.line')
+local StringUtils = require('gitstatus.string_utils')
 local Window = require('gitstatus.window')
 local git = require('gitstatus.git')
 local out_formatter = require('gitstatus.out_formatter')
@@ -76,16 +77,19 @@ local function refresh_buffer(
   vim.api.nvim_set_option_value('modifiable', false, { buf = buf })
 
   local numberwidth = vim.api.nvim_get_option_value('numberwidth', {})
-  local width = Window.width(lines_strings, numberwidth, parent_win_width)
+  local optimal_width = Window.width(lines_strings, numberwidth, parent_win_width)
+  local min_width = 80
+  local width = optimal_width < min_width and min_width or optimal_width
   local height = Window.height(lines_strings, parent_win_height)
-  vim.api.nvim_win_set_config(0, {
+  assert(window ~= nil)
+  vim.api.nvim_win_set_config(window, {
     relative = 'editor',
     width = width,
     height = height,
     row = Window.row(parent_win_height, height),
     col = Window.column(parent_win_width, width),
   })
-  vim.api.nvim_win_set_cursor(0, { get_new_cursor_row(cursor_file), col })
+  vim.api.nvim_win_set_cursor(window, { get_new_cursor_row(cursor_file), col })
 end
 
 ---@param file File
@@ -116,12 +120,11 @@ local function toggle_stage_file(
     return
   end
 
-  local git_repo_root_dir_out, err = git.repo_root_dir()
+  local git_repo_root_dir, err = git.repo_root_dir()
   if err ~= nil then
     vim.notify(err, vim.log.levels.ERROR)
     return
   end
-  local git_repo_root_dir = parse.git_repo_root_dir(git_repo_root_dir_out)
 
   local toggle_stage_file_func = get_toggle_stage_file_func(line.file)
   err = toggle_stage_file_func(line.file.path, git_repo_root_dir)
@@ -212,12 +215,11 @@ local function open_commit_prompt(
   end
 
 
-  local git_repo_root_dir_out, err = git.repo_root_dir()
+  local git_repo_root_dir, err = git.repo_root_dir()
   if err ~= nil then
     vim.notify(err, vim.log.levels.ERROR)
     return
   end
-  local git_repo_root_dir = parse.git_repo_root_dir(git_repo_root_dir_out)
 
   local buf = vim.api.nvim_create_buf(false, false)
   vim.api.nvim_buf_set_name(buf, git_repo_root_dir .. '/.git/COMMIT_EDITMSG')
@@ -226,12 +228,12 @@ local function open_commit_prompt(
   vim.api.nvim_buf_set_lines(buf, 0, -1, true, {})
   vim.api.nvim_buf_call(buf, vim.cmd.write)
 
+  local height = 7
   local pos = vim.api.nvim_win_get_position(0)
   local row, col = unpack(pos)
-  local height = 7
   vim.api.nvim_open_win(buf, true, {
     relative = 'editor',
-    width = vim.api.nvim_win_get_width(0),
+    width = 80,
     height = height,
     row = row - height - 2,
     col = col,
@@ -246,7 +248,7 @@ local function open_commit_prompt(
       local commit_msg_file = vim.api.nvim_buf_get_name(ev.buf)
       local _, err2 = git.commit(commit_msg_file)
       if err2 ~= nil then
-        vim.notify(err2, vim.log.levels.WARN)
+        vim.notify(StringUtils.strip_trailing_newline(err2), vim.log.levels.WARN)
       else
         vim.notify('Commit successful!', vim.log.levels.INFO)
       end

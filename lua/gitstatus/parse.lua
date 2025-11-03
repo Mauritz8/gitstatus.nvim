@@ -111,11 +111,4 @@ function M.git_branch(branch_output)
   return '', 'Unable to retrieve the current branch'
 end
 
----@param git_repo_root_dir_output string
----@return string
-function M.git_repo_root_dir(git_repo_root_dir_output)
-  local git_repo_root_dir, _ = git_repo_root_dir_output:gsub('\n', '')
-  return git_repo_root_dir
-end
-
 return M

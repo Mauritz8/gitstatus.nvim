@@ -1,3 +1,5 @@
+local StringUtils = require('gitstatus.string_utils')
+
 local M = {}
 
 ---@return string, string?
@@ -85,7 +87,7 @@ function M.repo_root_dir()
   if obj.code ~= 0 then
     return '', 'Unable to get git repo root dir: ' .. obj.stderr
   end
-  return obj.stdout, nil
+  return StringUtils.strip_trailing_newline(obj.stdout), nil
 end
 
 return M

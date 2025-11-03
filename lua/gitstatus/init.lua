@@ -81,7 +81,9 @@ local function refresh_buffer(
     Window.width(lines_strings, numberwidth, parent_win_width)
   local min_width = 80
   local width = optimal_width < min_width and min_width or optimal_width
-  local height = Window.height(lines_strings, parent_win_height)
+  local optimal_height = Window.height(lines_strings, parent_win_height)
+  local max_height = 15
+  local height = optimal_height > max_height and max_height or optimal_height
   assert(window ~= nil)
   vim.api.nvim_win_set_config(window, {
     relative = 'editor',

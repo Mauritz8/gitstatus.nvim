@@ -77,7 +77,8 @@ local function refresh_buffer(
   vim.api.nvim_set_option_value('modifiable', false, { buf = buf })
 
   local numberwidth = vim.api.nvim_get_option_value('numberwidth', {})
-  local optimal_width = Window.width(lines_strings, numberwidth, parent_win_width)
+  local optimal_width =
+    Window.width(lines_strings, numberwidth, parent_win_width)
   local min_width = 80
   local width = optimal_width < min_width and min_width or optimal_width
   local height = Window.height(lines_strings, parent_win_height)
@@ -116,7 +117,10 @@ local function toggle_stage_file(
   local row = vim.api.nvim_win_get_cursor(0)[1]
   local line = buf_lines[row]
   if line.file == nil then
-    vim.notify('Unable to stage/unstage file: invalid line', vim.log.levels.WARN)
+    vim.notify(
+      'Unable to stage/unstage file: invalid line',
+      vim.log.levels.WARN
+    )
     return
   end
 
@@ -210,10 +214,12 @@ local function open_commit_prompt(
   end
 
   if Line.unmerged_files(buf_lines) > 0 then
-    vim.notify('Committing is not possible because you have unmerged files.', vim.log.levels.WARN)
+    vim.notify(
+      'Committing is not possible because you have unmerged files.',
+      vim.log.levels.WARN
+    )
     return
   end
-
 
   local git_repo_root_dir, err = git.repo_root_dir()
   if err ~= nil then
@@ -261,7 +267,10 @@ local function open_commit_prompt(
       vim.cmd('redraw')
 
       if err2 ~= nil then
-        vim.notify(StringUtils.strip_trailing_newline(err2), vim.log.levels.WARN)
+        vim.notify(
+          StringUtils.strip_trailing_newline(err2),
+          vim.log.levels.WARN
+        )
       else
         vim.notify('Commit successful!', vim.log.levels.INFO)
       end

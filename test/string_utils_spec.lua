@@ -24,7 +24,9 @@ describe('string_utils.lua', function()
   describe('filter', function()
     it('basic', function()
       local strings = { 'a', 'b', 'b', 'a', 'b' }
-      local is_a = function(str) return str == 'a' end
+      local is_a = function(str)
+        return str == 'a'
+      end
       assert.are_same({ 'a', 'a' }, StringUtils.filter(strings, is_a))
     end)
   end)

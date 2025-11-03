@@ -202,8 +202,14 @@ function M.make_commit_init_msg()
   local lines = {}
 
   table.insert(lines, '')
-  table.insert(lines, '# Please enter the commit message for your changes. Lines starting')
-  table.insert(lines, '# with \'#\' will be ignored, and an empty message aborts the commit.')
+  table.insert(
+    lines,
+    '# Please enter the commit message for your changes. Lines starting'
+  )
+  table.insert(
+    lines,
+    "# with '#' will be ignored, and an empty message aborts the commit."
+  )
   table.insert(lines, '#')
   table.insert(lines, '# Save and close this buffer to confirm your commit')
 

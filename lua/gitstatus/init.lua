@@ -226,7 +226,6 @@ local function open_commit_prompt(
   vim.api.nvim_buf_call(buf, vim.cmd.edit)
   local help_msg = out_formatter.make_commit_init_msg()
   vim.api.nvim_buf_set_lines(buf, 0, -1, true, help_msg)
-  vim.api.nvim_buf_call(buf, vim.cmd.write)
 
   local height = 7
   local pos = vim.api.nvim_win_get_position(0)
@@ -240,6 +239,7 @@ local function open_commit_prompt(
     title = 'Git commit',
     border = { '╔', '═', '╗', '║', '╝', '═', '╚', '║' },
   })
+  vim.cmd('silent write')
   vim.api.nvim_win_set_cursor(0, { 1, 0 })
 
   vim.api.nvim_create_autocmd({ 'QuitPre' }, {
@@ -253,14 +253,16 @@ local function open_commit_prompt(
       end
       local msg_without_comments = StringUtils.filter(msg, is_not_comment)
       vim.api.nvim_buf_set_lines(ev.buf, 0, -1, true, msg_without_comments)
-      vim.api.nvim_buf_call(ev.buf, vim.cmd.write)
+      vim.cmd('silent write')
 
       local _, err2 = git.commit(commit_msg_file)
+
+      -- redraw before sending notification to avoid annoying prompt
+      vim.cmd('redraw')
+
       if err2 ~= nil then
         vim.notify(StringUtils.strip_trailing_newline(err2), vim.log.levels.WARN)
       else
-        -- TODO: clear write to buffer message before displaying the notification
-        -- to avoid the annoying prompt
         vim.notify('Commit successful!', vim.log.levels.INFO)
       end
 

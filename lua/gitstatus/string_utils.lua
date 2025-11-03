@@ -36,4 +36,24 @@ function M.strip_trailing_newline(str)
   return str
 end
 
+---@param str string
+---@param chars string
+---@return boolean
+function M.str_starts_with(str, chars)
+  return str:sub(1, #chars) == chars
+end
+
+---@param strings string[]
+---@param predicate fun(str: string): boolean
+---@return string[]
+function M.filter(strings, predicate)
+  local new_lines = {}
+  for _, str in ipairs(strings) do
+    if predicate(str) then
+      table.insert(new_lines, str)
+    end
+  end
+  return new_lines
+end
+
 return M

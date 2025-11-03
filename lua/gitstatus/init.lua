@@ -224,8 +224,8 @@ local function open_commit_prompt(
   local buf = vim.api.nvim_create_buf(false, false)
   vim.api.nvim_buf_set_name(buf, git_repo_root_dir .. '/.git/COMMIT_EDITMSG')
   vim.api.nvim_buf_call(buf, vim.cmd.edit)
-  -- local help_msg = out_formatter.make_commit_init_msg()
-  vim.api.nvim_buf_set_lines(buf, 0, -1, true, {})
+  local help_msg = out_formatter.make_commit_init_msg()
+  vim.api.nvim_buf_set_lines(buf, 0, -1, true, help_msg)
   vim.api.nvim_buf_call(buf, vim.cmd.write)
 
   local height = 7
@@ -246,6 +246,15 @@ local function open_commit_prompt(
     buffer = buf,
     callback = function(ev)
       local commit_msg_file = vim.api.nvim_buf_get_name(ev.buf)
+
+      local msg = vim.api.nvim_buf_get_lines(ev.buf, 0, -1, true)
+      local is_not_comment = function(str)
+        return not StringUtils.str_starts_with(str, '#')
+      end
+      local msg_without_comments = StringUtils.filter(msg, is_not_comment)
+      vim.api.nvim_buf_set_lines(ev.buf, 0, -1, true, msg_without_comments)
+      vim.api.nvim_buf_call(ev.buf, vim.cmd.write)
+
       local _, err2 = git.commit(commit_msg_file)
       if err2 ~= nil then
         vim.notify(StringUtils.strip_trailing_newline(err2), vim.log.levels.WARN)

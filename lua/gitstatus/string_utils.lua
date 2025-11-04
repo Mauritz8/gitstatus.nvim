@@ -59,7 +59,7 @@ end
 ---@param str string
 ---@param max_len integer
 ---@return string
-function M.strip_string(str, max_len)
+function M.truncate_string(str, max_len)
   if #str > max_len then
     local stripped_str_prefix = '...'
     return stripped_str_prefix

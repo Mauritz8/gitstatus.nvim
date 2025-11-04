@@ -127,11 +127,9 @@ local function file_to_line(file, icon_provider, max_edit_type_len)
   end
 
   ---@type LinePart[]
-  local parts = nil
+  local parts = { edit_type, margin, name }
   if icon ~= nil then
     parts = { edit_type, margin, icon, name }
-  else
-    parts = { edit_type, margin, name }
   end
 
   ---@type Line

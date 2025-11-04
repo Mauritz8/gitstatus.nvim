@@ -133,12 +133,16 @@ describe('out_formatter.lua', function()
         {
           parts = {
             {
-              str = 'modified: ',
-              hl_group = 'staged',
+              str = 'modified:',
+              hl_group = 'String',
+            },
+            {
+              str = '    ',
+              hl_group = nil,
             },
             {
               str = 'file1.txt',
-              hl_group = 'staged',
+              hl_group = nil,
             },
           },
           file = files[1],
@@ -146,12 +150,16 @@ describe('out_formatter.lua', function()
         {
           parts = {
             {
-              str = 'renamed: ',
-              hl_group = 'staged',
+              str = 'renamed:',
+              hl_group = 'String',
+            },
+            {
+              str = '     ',
+              hl_group = nil,
             },
             {
               str = 'file4.txt -> file5.txt',
-              hl_group = 'staged',
+              hl_group = nil,
             },
           },
           file = files[4],
@@ -177,12 +185,16 @@ describe('out_formatter.lua', function()
         {
           parts = {
             {
-              str = 'deleted: ',
-              hl_group = 'not_staged',
+              str = 'deleted:',
+              hl_group = 'String',
+            },
+            {
+              str = '     ',
+              hl_group = nil,
             },
             {
               str = 'file2.txt',
-              hl_group = 'not_staged',
+              hl_group = nil,
             },
           },
           file = files[2],
@@ -209,11 +221,15 @@ describe('out_formatter.lua', function()
           parts = {
             {
               str = '',
-              hl_group = 'not_staged',
+              hl_group = 'String',
+            },
+            {
+              str = '             ',
+              hl_group = nil,
             },
             {
               str = 'file3.txt',
-              hl_group = 'not_staged',
+              hl_group = nil,
             },
           },
           file = files[3],

@@ -46,5 +46,5 @@ While inside the Git status window:
 - `s` – Stage/unstage the file on the current line
 - `a` – Stage all changes
 - `c` – Open commit prompt
-- `<CR>` (`Enter`) - Open file on the current line
+- `o` - Open file on the current line
 - `q` – Close window

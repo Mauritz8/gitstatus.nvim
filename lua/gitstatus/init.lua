@@ -14,6 +14,11 @@ local buf_lines = {}
 ---@type integer?
 local window = nil
 
+---@type integer?
+local help_window = nil
+
+local WINDOW_WIDTH = 80
+
 ---@param cursor_file File?
 ---@return integer
 local function get_new_cursor_row(cursor_file)
@@ -76,7 +81,7 @@ local function refresh_buffer(
   end
   vim.api.nvim_set_option_value('modifiable', false, { buf = buf })
 
-  local width = 80
+  local width = WINDOW_WIDTH
   local optimal_height = Window.height(lines_strings, parent_win_height)
   local max_height = 15
   local height = optimal_height > max_height and max_height or optimal_height
@@ -236,7 +241,7 @@ local function open_commit_prompt(
   local row, col = unpack(pos)
   vim.api.nvim_open_win(buf, true, {
     relative = 'editor',
-    width = 80,
+    width = WINDOW_WIDTH,
     height = height,
     row = row - height - 2,
     col = col,
@@ -286,12 +291,16 @@ local function open_commit_prompt(
   })
 end
 
----@param parent_win_width number
----@param parent_win_height number
-local function open_help_window(parent_win_width, parent_win_height)
+local function toggle_help_window()
+  if help_window ~= nil then
+    vim.api.nvim_win_close(help_window, false)
+    help_window = nil
+    return
+  end
+
   local lines = out_formatter.make_help_window_msg()
   local lines_strings = Line.get_lines_strings(lines)
-  local buf = vim.api.nvim_create_buf(true, true)
+  local buf = vim.api.nvim_create_buf(false, true)
   vim.api.nvim_buf_set_lines(buf, 0, -1, true, lines_strings)
   local namespace = vim.api.nvim_create_namespace('')
   for i, line in ipairs(lines) do
@@ -305,24 +314,17 @@ local function open_help_window(parent_win_width, parent_win_height)
     end
   end
 
-  local numberwidth = vim.api.nvim_get_option_value('numberwidth', {})
-  local width = Window.width(lines_strings, numberwidth, parent_win_width)
-  local height = Window.height(lines_strings, parent_win_height)
-  vim.api.nvim_open_win(buf, true, {
+  local pos = vim.api.nvim_win_get_position(0)
+  local row, col = unpack(pos)
+  help_window = vim.api.nvim_open_win(buf, false, {
     relative = 'editor',
-    width = width,
-    height = height,
-    row = Window.row(parent_win_height, height),
-    col = Window.column(parent_win_width, width),
-    title = 'Keymappings',
+    width = WINDOW_WIDTH,
+    height = #lines_strings,
+    row = row + vim.api.nvim_win_get_height(0) + 1,
+    col = col,
+    zindex = 100,
+    style = 'minimal',
     border = { '╔', '═', '╗', '║', '╝', '═', '╚', '║' },
-  })
-
-  vim.keymap.set('n', 'q', function()
-    vim.cmd.quit()
-  end, {
-    buffer = buf,
-    desc = 'Quit',
   })
 end
 
@@ -363,7 +365,7 @@ local function register_keybindings(
     buffer = buf,
     desc = 'Go to previous file',
   })
-  vim.keymap.set('n', '<CR>', open_file, {
+  vim.keymap.set('n', 'o', open_file, {
     buffer = buf,
     desc = 'Open file',
   })
@@ -373,11 +375,9 @@ local function register_keybindings(
     buffer = buf,
     desc = 'Open commit prompt',
   })
-  vim.keymap.set('n', '?', function()
-    open_help_window(parent_win_width, parent_win_height)
-  end, {
+  vim.keymap.set('n', '?', toggle_help_window, {
     buffer = buf,
-    desc = 'Open help window',
+    desc = 'Toggle help window',
   })
 end
 
@@ -406,6 +406,10 @@ function M.open_status_win()
     callback = function()
       vim.api.nvim_buf_delete(buf, {})
       window = nil
+      if help_window ~= nil then
+        vim.api.nvim_win_close(help_window, false)
+        help_window = nil
+      end
     end,
   })
 

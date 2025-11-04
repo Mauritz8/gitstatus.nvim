@@ -253,22 +253,21 @@ function M.make_help_window_msg()
     {
       parts = {
         {
-          str = 's',
+          str = '    s',
           hl_group = 'Label',
         },
         {
           str = ' - ',
-          hl_group = '',
+          hl_group = nil,
         },
         {
           str = 'Stage/unstage file',
           hl_group = 'Function',
         },
-      },
-      file = nil,
-    },
-    {
-      parts = {
+        {
+          str = '    ',
+          hl_group = nil,
+        },
         {
           str = 'a',
           hl_group = 'Label',
@@ -281,11 +280,10 @@ function M.make_help_window_msg()
           str = 'Stage all changes',
           hl_group = 'Function',
         },
-      },
-      file = nil,
-    },
-    {
-      parts = {
+        {
+          str = '    ',
+          hl_group = nil,
+        },
         {
           str = 'c',
           hl_group = 'Label',
@@ -304,7 +302,7 @@ function M.make_help_window_msg()
     {
       parts = {
         {
-          str = '<CR> (Enter)',
+          str = '    o',
           hl_group = 'Label',
         },
         {
@@ -315,11 +313,10 @@ function M.make_help_window_msg()
           str = 'Open file',
           hl_group = 'Function',
         },
-      },
-      file = nil,
-    },
-    {
-      parts = {
+        {
+          str = '             ',
+          hl_group = nil,
+        },
         {
           str = 'q',
           hl_group = 'Label',

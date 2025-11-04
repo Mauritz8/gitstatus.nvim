@@ -19,6 +19,43 @@ local help_window = nil
 
 local WINDOW_WIDTH = 80
 
+local function toggle_help_window()
+  if help_window ~= nil then
+    vim.api.nvim_win_close(help_window, false)
+    help_window = nil
+    return
+  end
+
+  local lines = out_formatter.make_help_window_msg()
+  local lines_strings = Line.get_lines_strings(lines)
+  local buf = vim.api.nvim_create_buf(false, true)
+  vim.api.nvim_buf_set_lines(buf, 0, -1, true, lines_strings)
+  local namespace = vim.api.nvim_create_namespace('')
+  for i, line in ipairs(lines) do
+    local pos = 0
+    for _, part in ipairs(line.parts) do
+      vim.api.nvim_buf_set_extmark(buf, namespace, i - 1, pos, {
+        end_col = pos + part.str:len(),
+        hl_group = part.hl_group,
+      })
+      pos = pos + part.str:len()
+    end
+  end
+
+  local pos = vim.api.nvim_win_get_position(0)
+  local row, col = unpack(pos)
+  help_window = vim.api.nvim_open_win(buf, false, {
+    relative = 'editor',
+    width = WINDOW_WIDTH,
+    height = #lines_strings,
+    row = row + vim.api.nvim_win_get_height(0) + 1,
+    col = col,
+    zindex = 100,
+    style = 'minimal',
+    border = { '╔', '═', '╗', '║', '╝', '═', '╚', '║' },
+  })
+end
+
 ---@param cursor_file File?
 ---@return integer
 local function get_new_cursor_row(cursor_file)
@@ -94,6 +131,12 @@ local function refresh_buffer(
     col = Window.column(parent_win_width, width),
   })
   vim.api.nvim_win_set_cursor(window, { get_new_cursor_row(cursor_file), col })
+
+  if help_window ~= nil then
+    vim.api.nvim_win_close(help_window, false)
+    help_window = nil
+    toggle_help_window()
+  end
 end
 
 ---@param file File
@@ -288,43 +331,6 @@ local function open_commit_prompt(
         parent_win_height
       )
     end,
-  })
-end
-
-local function toggle_help_window()
-  if help_window ~= nil then
-    vim.api.nvim_win_close(help_window, false)
-    help_window = nil
-    return
-  end
-
-  local lines = out_formatter.make_help_window_msg()
-  local lines_strings = Line.get_lines_strings(lines)
-  local buf = vim.api.nvim_create_buf(false, true)
-  vim.api.nvim_buf_set_lines(buf, 0, -1, true, lines_strings)
-  local namespace = vim.api.nvim_create_namespace('')
-  for i, line in ipairs(lines) do
-    local pos = 0
-    for _, part in ipairs(line.parts) do
-      vim.api.nvim_buf_set_extmark(buf, namespace, i - 1, pos, {
-        end_col = pos + part.str:len(),
-        hl_group = part.hl_group,
-      })
-      pos = pos + part.str:len()
-    end
-  end
-
-  local pos = vim.api.nvim_win_get_position(0)
-  local row, col = unpack(pos)
-  help_window = vim.api.nvim_open_win(buf, false, {
-    relative = 'editor',
-    width = WINDOW_WIDTH,
-    height = #lines_strings,
-    row = row + vim.api.nvim_win_get_height(0) + 1,
-    col = col,
-    zindex = 100,
-    style = 'minimal',
-    border = { '╔', '═', '╗', '║', '╝', '═', '╚', '║' },
   })
 end
 

@@ -90,4 +90,13 @@ function M.repo_root_dir()
   return StringUtils.strip_trailing_newline(obj.stdout), nil
 end
 
+---@param repo_root string
+---@return boolean
+function M.repo_has_pre_commit_hook(repo_root)
+  local obj = vim
+    .system({ 'test', '-e', '.git/hooks/pre-commit' }, { cwd = repo_root })
+    :wait()
+  return obj.code == 0
+end
+
 return M

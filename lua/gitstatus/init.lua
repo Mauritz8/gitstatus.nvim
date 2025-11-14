@@ -274,11 +274,12 @@ local function open_commit_prompt(
     col = col,
     title = 'Git commit',
     border = { '╔', '═', '╗', '║', '╝', '═', '╚', '║' },
+    noautocmd = true,
   })
   vim.cmd('silent write')
   vim.api.nvim_win_set_cursor(0, { 1, 0 })
 
-  vim.api.nvim_create_autocmd({ 'QuitPre' }, {
+  vim.api.nvim_create_autocmd('QuitPre', {
     buffer = buf_id,
     callback = function(ev)
       local msg = vim.api.nvim_buf_get_lines(ev.buf, 0, -1, true)
@@ -290,8 +291,8 @@ local function open_commit_prompt(
       vim.cmd('silent write')
 
       -- TODO: figure out why this notification isn't run until after the commit has finished
-      -- TODO: if possible, consider running the hook when opening the commit window instead of when quiting it
-      -- if git.repo_has_pre_commit_hook() then
+      -- TODO: if possible, consider running the hook when opening the commit window instead of when quitting it
+      -- if git.repo_has_pre_commit_hook(repo_root) then
       --   vim.notify('Running pre-commit hook...', vim.log.levels.INFO)
       -- end
 
@@ -353,9 +354,7 @@ local function register_keybindings(
   repo_root,
   state
 )
-  vim.keymap.set('n', 'q', function()
-    close_window(window_id, buf_id, state)
-  end, {
+  vim.keymap.set('n', 'q', vim.cmd.quit, {
     buffer = buf_id,
     desc = 'Quit',
   })
@@ -389,7 +388,7 @@ local function register_keybindings(
     buffer = buf_id,
     desc = 'Stage all changes',
   })
-  vim.keymap.set('n', 'j', function ()
+  vim.keymap.set('n', 'j', function()
     go_next_file(state.buf_lines)
   end, {
     buffer = buf_id,
@@ -429,9 +428,6 @@ local function register_keybindings(
   })
 end
 
--- TODO: close window when leaving it
--- TODO: close help window when closing window with :q
--- TODO: close window if error happens during setup or buffer_refresh
 function M.open_status_win()
   local buf_id = vim.api.nvim_create_buf(false, true)
   local parent_win_width = vim.api.nvim_win_get_width(0)
@@ -455,6 +451,7 @@ function M.open_status_win()
   local repo_root, err = git.repo_root_dir()
   if err ~= nil then
     vim.notify(err, vim.log.levels.ERROR)
+    vim.cmd.quit()
     return
   end
 
@@ -465,6 +462,13 @@ function M.open_status_win()
   }
   local namespace_id = vim.api.nvim_create_namespace('')
   vim.api.nvim_win_set_hl_ns(window_id, namespace_id)
+
+  vim.api.nvim_create_autocmd('WinLeave', {
+    buffer = buf_id,
+    callback = function()
+      close_window(window_id, buf_id, state)
+    end,
+  })
   register_keybindings(
     window_id,
     buf_id,

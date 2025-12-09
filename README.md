@@ -2,7 +2,7 @@
 
 A Neovim plugin for managing Git from the editor. Shows an interactive status window with support for staging, unstaging, and committing files.
 
-https://github.com/user-attachments/assets/e7ce741c-8105-4686-b610-3b05dcde5931
+![demo](docs/demo.gif)
 
 ## Installation
 Install with your favorite plugin manager. For example, using [Lazy.nvim](https://github.com/folke/lazy.nvim):

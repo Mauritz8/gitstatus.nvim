@@ -225,7 +225,10 @@ local function open_file(buf_lines)
   vim.cmd.quit()
   local open_file_cmd = vim.fn.bufexists(line.file.path) == 1 and 'buffer'
     or 'e'
-  vim.api.nvim_cmd({ cmd = open_file_cmd, args = { line.file.path } }, {})
+  vim.api.nvim_cmd(
+    { cmd = open_file_cmd, args = { vim.fn.fnameescape(line.file.path) } },
+    {}
+  )
 end
 
 ---@param status_win_id integer

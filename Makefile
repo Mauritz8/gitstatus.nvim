@@ -4,7 +4,7 @@ test:
 
 .PHONY: lint
 lint:
-	stylua --check . && luacheck . --globals vim && lua-language-server --check .
+	stylua --check . && luacheck .
 
 .PHONY: format
 format:

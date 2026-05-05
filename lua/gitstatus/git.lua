@@ -90,13 +90,23 @@ function M.repo_root_dir()
   return StringUtils.strip_trailing_newline(obj.stdout), nil
 end
 
----@param repo_root string
+---@param repo_git_dir string
 ---@return boolean
-function M.repo_has_pre_commit_hook(repo_root)
-  local obj = vim
-    .system({ 'test', '-e', '.git/hooks/pre-commit' }, { cwd = repo_root })
-    :wait()
+function M.repo_has_pre_commit_hook(repo_git_dir)
+  local obj =
+    vim.system({ 'test', '-e', repo_git_dir .. '/hooks/pre-commit' }):wait()
   return obj.code == 0
+end
+
+---@return string, string?
+function M.repo_git_dir()
+  local obj = vim
+    .system({ 'git', 'rev-parse', '--git-dir' }, { text = true })
+    :wait()
+  if obj.code ~= 0 then
+    return '', 'Unable to get git dir: ' .. obj.stderr
+  end
+  return StringUtils.strip_trailing_newline(obj.stdout), nil
 end
 
 return M

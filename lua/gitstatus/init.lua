@@ -233,7 +233,7 @@ end
 ---@param status_win_namespace_id integer
 ---@param parent_win_width number
 ---@param parent_win_height number
----@param repo_root string
+---@param repo_git_dir string
 ---@param state State
 local function open_commit_prompt(
   status_win_id,
@@ -241,7 +241,7 @@ local function open_commit_prompt(
   status_win_namespace_id,
   parent_win_width,
   parent_win_height,
-  repo_root,
+  repo_git_dir,
   state
 )
   if Line.staged_files(state.buf_lines) == 0 then
@@ -258,7 +258,7 @@ local function open_commit_prompt(
   end
 
   local buf_id = vim.api.nvim_create_buf(false, false)
-  vim.api.nvim_buf_set_name(buf_id, repo_root .. '/.git/COMMIT_EDITMSG')
+  vim.api.nvim_buf_set_name(buf_id, repo_git_dir .. '/COMMIT_EDITMSG')
   vim.api.nvim_buf_call(buf_id, vim.cmd.edit)
   local help_msg = out_formatter.make_commit_init_msg()
   vim.api.nvim_buf_set_lines(buf_id, 0, -1, true, help_msg)
@@ -292,7 +292,7 @@ local function open_commit_prompt(
 
       -- TODO: figure out why this notification isn't run until after the commit has finished
       -- TODO: if possible, consider running the hook when opening the commit window instead of when quitting it
-      -- if git.repo_has_pre_commit_hook(repo_root) then
+      -- if git.repo_has_pre_commit_hook(repo_git_dir) then
       --   vim.notify('Running pre-commit hook...', vim.log.levels.INFO)
       -- end
 
@@ -344,6 +344,7 @@ end
 ---@param parent_win_width integer
 ---@param parent_win_height integer
 ---@param repo_root string
+---@param repo_git_dir string
 ---@param state State
 local function register_keybindings(
   window_id,
@@ -352,6 +353,7 @@ local function register_keybindings(
   parent_win_width,
   parent_win_height,
   repo_root,
+  repo_git_dir,
   state
 )
   vim.keymap.set('n', 'q', vim.cmd.quit, {
@@ -413,7 +415,7 @@ local function register_keybindings(
       namespace_id,
       parent_win_width,
       parent_win_height,
-      repo_root,
+      repo_git_dir,
       state
     )
   end, {
@@ -455,6 +457,13 @@ function M.open_status_win()
     return
   end
 
+  local repo_git_dir, err2 = git.repo_git_dir()
+  if err2 ~= nil then
+    vim.notify(err2, vim.log.levels.ERROR)
+    vim.cmd.quit()
+    return
+  end
+
   ---@type State
   local state = {
     help_window_id = nil,
@@ -476,6 +485,7 @@ function M.open_status_win()
     parent_win_width,
     parent_win_height,
     repo_root,
+    repo_git_dir,
     state
   )
   refresh_buffer(

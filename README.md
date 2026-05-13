@@ -5,32 +5,15 @@ A Neovim plugin for managing Git from the editor. Shows an interactive status wi
 ![demo](docs/demo.gif)
 
 ## Installation
-Install with your favorite plugin manager. For example, using [Lazy.nvim](https://github.com/folke/lazy.nvim):
 
 ```lua
-{
-  'Mauritz8/gitstatus.nvim',
+vim.pack.add({
+  'https://codeberg.org/mauritz/gitstatus.nvim',
   -- optional dependencies
-  dependencies = {
-    'nvim-tree/nvim-web-devicons', -- displays filetype icons
-    -- 'nvim-mini/mini.icons' -- use mini.icons instead if you prefer
-    'rcarriga/nvim-notify', -- displays nice notifications
-  },
-}
-```
-
-Or with [packer.nvim](https://github.com/wbthomason/packer.nvim)
-
-```lua
-use {
-  'Mauritz8/gitstatus.nvim',
-  -- optional dependencies
-  requires = {
-    'nvim-tree/nvim-web-devicons', -- displays filetype icons
-    -- 'nvim-mini/mini.icons' -- use mini.icons instead if you prefer
-    'rcarriga/nvim-notify', -- displays nice notifications
-  },
-}
+  'https://github.com/nvim-tree/nvim-web-devicons', -- display filetype icons
+  -- 'https://github.com/nvim-mini/mini.icons' -- use mini.icons instead if you prefer
+  -- 'https://github.com/rcarriga/nvim-notify', -- show fancy notifications
+})
 ```
 
 ## Usage

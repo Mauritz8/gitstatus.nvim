@@ -1,0 +1,22 @@
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  ci:
+    runs-on: docker
+    steps:
+      - uses: https://data.forgejo.org/actions/checkout@v6
+      - name: Install dependencies
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq luarocks
+          luarocks install busted
+          luarocks install luacov
+          luarocks install luacheck
+          wget https://github.com/JohnnyMorganz/StyLua/releases/download/v2.4.1/stylua-linux-x86_64.zip
+          unzip stylua-linux-x86_64.zip -d /usr/local/bin
+      - run: make test
+      - run: make lint
